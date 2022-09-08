@@ -7,9 +7,10 @@ public class Token implements IToken{
     private SourceLocation source;
 
 
-    public Token(Kind kind, char[] text) {
+    public Token(Kind kind, char[] text, int line, int col) {
         this.kind = kind;
         this.text = text;
+        this.source = new SourceLocation(line, col);
     }
 
     public Kind getKind() {
