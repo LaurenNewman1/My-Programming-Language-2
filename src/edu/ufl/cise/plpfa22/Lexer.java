@@ -34,6 +34,31 @@ public class Lexer implements ILexer{
             }
             tok = new Token(IToken.Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos + 1), line, startCol);
         }
+        // strings
+        else if (pos + 1 < input.length && input[pos] == '"'
+                && contains(Arrays.copyOfRange(input, pos + 1, input.length), '"')) {
+            int start = col;
+            int end = findIndex(input, pos + 1, '"');
+            String literal = "";
+            advance();
+            while (pos < end) {
+                if (input[pos] == '\\') {
+                    advance();
+                    if (pos == end || (input[pos] != 'b' && input[pos] != 't' && input[pos] != 'n'
+                        && input[pos] != 'f' && input[pos] != 'r' && input[pos] != '"'
+                        && input[pos] != '\'' && input[pos] != '\\')) {
+                        throw new LexicalException("Slash followed by invalid character", line, col);
+                    }
+                    literal += createEscape(input[pos]);
+                }
+                else {
+                    literal += input[pos];
+                }
+                advance();
+            }
+            advance();
+            tok = new Token(IToken.Kind.STRING_LIT, literal.toCharArray(), line, start);
+        }
         // booleans
         else if (pos + 3 < input.length && input[pos] == 'T'
                 && input[pos + 1] == 'R' && input[pos + 2] == 'U' && input[pos + 3] == 'E') {
@@ -235,11 +260,22 @@ public class Lexer implements ILexer{
         this.line++;
     }
 
-    private boolean isWhitespace(char c) {
-        if (c == '\t' || c == '\r' || c == '\n') {
-            return true;
+    private boolean contains(char[] arr, char c) {
+        for (int element : arr) {
+            if (element == c) {
+                return true;
+            }
         }
         return false;
+    }
+
+    private int findIndex(char[] arr, int i, char c) {
+        for (; i < arr.length; i++) {
+            if (arr[i] == c) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private void handleWhitespace() {
@@ -259,6 +295,29 @@ public class Lexer implements ILexer{
                     pos++; col++;
                     break;
             }
+        }
+    }
+
+    private char createEscape(char c) {
+        switch (c) {
+            case 'b':
+                return '\b';
+            case 't':
+                return '\t';
+            case 'n':
+                return '\n';
+            case 'f':
+                return '\f';
+            case 'r':
+                return '\r';
+            case '"':
+                return '\"';
+            case '\'':
+                return '\'';
+            case '\\':
+                return '\\';
+            default:
+                return ' ';
         }
     }
 }

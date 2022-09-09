@@ -75,6 +75,12 @@ class LexerTest {
         assertEquals(new IToken.SourceLocation(expectedLine,expectedColumn), t.getSourceLocation());
     }
 
+    void checkString(IToken t, String expectedValue, int expectedLine, int expectedColumn) {
+        assertEquals(Kind.STRING_LIT, t.getKind());
+        assertEquals(expectedValue, t.getStringValue());
+        assertEquals(new IToken.SourceLocation(expectedLine,expectedColumn), t.getSourceLocation());
+    }
+
     //check that this token is the EOF token
     void checkEOF(IToken t) {
         checkToken(t, Kind.EOF);
@@ -200,6 +206,30 @@ class LexerTest {
         show(input);
         ILexer lexer = getLexer(input);
         checkBool(lexer.next(), false, 1, 1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testString0() throws LexicalException {
+        String input = """
+				"Hello World"   
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "Hello World", 1, 1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testString1() throws LexicalException {
+        String input = """
+				"Hello\\nWorld"
+				"Hello\\tAgain"
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "Hello\nWorld", 1, 1);
+        checkString(lexer.next(), "Hello\tAgain", 2, 1);
         checkEOF(lexer.next());
     }
 
