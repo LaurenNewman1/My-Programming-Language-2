@@ -26,14 +26,14 @@ public class Token implements IToken{
     }
 
     public int getIntValue() {
-        return Integer.parseInt(text.toString());
+        return Integer.parseInt(String.valueOf(text));
     }
 
     public boolean getBooleanValue() {
-        return Boolean.parseBoolean(text.toString());
+        return Boolean.parseBoolean(String.valueOf(text));
     }
 
     public String getStringValue() {
-        return text.toString();
+        return String.valueOf(text);
     }
 }

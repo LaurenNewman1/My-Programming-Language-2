@@ -99,6 +99,28 @@ class LexerTest {
         checkEOF(lexer.next());
     }
 
+    @Test
+    void testSingleChar1() throws LexicalException {
+        String input = """
+				:=
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.ASSIGN, 1,1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    void testSingleChar2() throws LexicalException {
+        String input = """
+				>
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.GT, 1,1);
+        checkEOF(lexer.next());
+    }
+
     //comments should be skipped
     @Test
     void testComment0() throws LexicalException {
@@ -151,6 +173,17 @@ class LexerTest {
         checkEOF(lexer.next());
     }
 
+    @Test
+    public void testNumber() throws LexicalException {
+        String input = """
+				123 456
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkInt(lexer.next(), 123, 1,1);
+        checkInt(lexer.next(), 456, 1,5);
+        checkEOF(lexer.next());
+    }
 
     @Test
     public void testIdenInt() throws LexicalException {
