@@ -1,6 +1,7 @@
 package edu.ufl.cise.plpfa22;
 
 import java.util.Arrays;
+import edu.ufl.cise.plpfa22.IToken.Kind;
 
 public class Lexer implements ILexer{
 
@@ -23,7 +24,7 @@ public class Lexer implements ILexer{
         handleWhitespace();
         // check for end of input
         if (pos == input.length) {
-            return new Token(IToken.Kind.EOF, new char[]{}, line, col);
+            return new Token(Kind.EOF, new char[]{}, line, col);
         }
         // numbers
         if (Character.isDigit(input[pos])) {
@@ -32,7 +33,7 @@ public class Lexer implements ILexer{
             while (pos != input.length && Character.isDigit(input[pos])) {
                 advance();
             }
-            tok = new Token(IToken.Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos + 1), line, startCol);
+            tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos + 1), line, startCol);
         }
         // strings
         else if (pos + 1 < input.length && input[pos] == '"'
@@ -57,18 +58,68 @@ public class Lexer implements ILexer{
                 advance();
             }
             advance();
-            tok = new Token(IToken.Kind.STRING_LIT, literal.toCharArray(), line, start);
+            tok = new Token(Kind.STRING_LIT, literal.toCharArray(), line, start);
         }
         // booleans
         else if (pos + 3 < input.length && input[pos] == 'T'
                 && input[pos + 1] == 'R' && input[pos + 2] == 'U' && input[pos + 3] == 'E') {
-            tok = new Token(IToken.Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 4), line, col);
+            tok = new Token(Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 4), line, col);
             advance(4);
         }
-        else if (pos + 3 < input.length && input[pos] == 'F' && input[pos + 1] == 'A'
+        else if (pos + 4 < input.length && input[pos] == 'F' && input[pos + 1] == 'A'
                 && input[pos + 2] == 'L' && input[pos + 3] == 'S' && input[pos + 4] == 'E') {
-            tok = new Token(IToken.Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 5), line, col);
+            tok = new Token(Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 5), line, col);
             advance(5);
+        }
+        // keywords
+        else if (pos + 4 < input.length && input[pos] == 'C' && input[pos + 1] == 'O'
+                && input[pos + 2] == 'N' && input[pos + 3] == 'S' && input[pos + 4] == 'T') {
+            tok = new Token(Kind.KW_CONST, Arrays.copyOfRange(input, pos, pos + 5), line, col);
+            advance(5);
+        }
+        else if (pos + 2 < input.length && input[pos] == 'V' && input[pos + 1] == 'A'
+                && input[pos + 2] == 'R') {
+            tok = new Token(Kind.KW_VAR, Arrays.copyOfRange(input, pos, pos + 3), line, col);
+            advance(3);
+        }
+        else if (pos + 8 < input.length && input[pos] == 'P' && input[pos + 1] == 'R' && input[pos + 2] == 'O'
+                && input[pos + 3] == 'C' && input[pos + 4] == 'E' && input[pos + 5] == 'D'
+                && input[pos + 6] == 'U' && input[pos + 7] == 'R' && input[pos + 8] == 'E') {
+            tok = new Token(Kind.KW_PROCEDURE, Arrays.copyOfRange(input, pos, pos + 9), line, col);
+            advance(9);
+        }
+        else if (pos + 3 < input.length && input[pos] == 'C' && input[pos + 1] == 'A'
+                && input[pos + 2] == 'L' && input[pos + 3] == 'L') {
+            tok = new Token(Kind.KW_CALL, Arrays.copyOfRange(input, pos, pos + 4), line, col);
+            advance(4);
+        }
+        else if (pos + 4 < input.length && input[pos] == 'B' && input[pos + 1] == 'E'
+                && input[pos + 2] == 'G' && input[pos + 3] == 'I' && input[pos + 4] == 'N') {
+            tok = new Token(Kind.KW_BEGIN, Arrays.copyOfRange(input, pos, pos + 5), line, col);
+            advance(5);
+        }
+        else if (pos + 2 < input.length && input[pos] == 'E' && input[pos + 1] == 'N'
+                && input[pos + 2] == 'D') {
+            tok = new Token(Kind.KW_END, Arrays.copyOfRange(input, pos, pos + 3), line, col);
+            advance(3);
+        }
+        else if (pos + 1 < input.length && input[pos] == 'I' && input[pos + 1] == 'F') {
+            tok = new Token(Kind.KW_IF, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+            advance(2);
+        }
+        else if (pos + 3 < input.length && input[pos] == 'T' && input[pos + 1] == 'H'
+                && input[pos + 2] == 'E' && input[pos + 3] == 'N') {
+            tok = new Token(Kind.KW_THEN, Arrays.copyOfRange(input, pos, pos + 4), line, col);
+            advance(4);
+        }
+        else if (pos + 4 < input.length && input[pos] == 'W' && input[pos + 1] == 'H'
+                && input[pos + 2] == 'I' && input[pos + 3] == 'L' && input[pos + 4] == 'E') {
+            tok = new Token(Kind.KW_WHILE, Arrays.copyOfRange(input, pos, pos + 5), line, col);
+            advance(5);
+        }
+        else if (pos + 1 < input.length && input[pos] == 'D' && input[pos + 1] == 'O') {
+            tok = new Token(Kind.KW_DO, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+            advance(2);
         }
         else {
             switch (input[pos]) {
@@ -76,87 +127,87 @@ public class Lexer implements ILexer{
                     newLine();
                     break;
                 case '.':
-                    tok = new Token(IToken.Kind.DOT, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.DOT, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case ',':
-                    tok = new Token(IToken.Kind.COMMA, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.COMMA, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case ';':
-                    tok = new Token(IToken.Kind.SEMI, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.SEMI, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '"':
-                    tok = new Token(IToken.Kind.QUOTE, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.QUOTE, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '(':
-                    tok = new Token(IToken.Kind.LPAREN, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.LPAREN, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case ')':
-                    tok = new Token(IToken.Kind.RPAREN, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.RPAREN, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '+':
-                    tok = new Token(IToken.Kind.PLUS, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.PLUS, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '-':
-                    tok = new Token(IToken.Kind.MINUS, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.MINUS, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '*':
-                    tok = new Token(IToken.Kind.TIMES, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.TIMES, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '/':
-                    tok = new Token(IToken.Kind.DIV, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.DIV, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '%':
-                    tok = new Token(IToken.Kind.MOD, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.MOD, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '?':
-                    tok = new Token(IToken.Kind.QUESTION, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.QUESTION, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '!':
-                    tok = new Token(IToken.Kind.BANG, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.BANG, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case ':':
                     if (input[pos + 1] != '=') {
                         throw new LexicalException("Colons must be follow by =", line, col);
                     }
-                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                    tok = new Token(Kind.ASSIGN, Arrays.copyOfRange(input, pos, pos + 2), line, col);
                     advance(2);
                     break;
                 case '=':
-                    tok = new Token(IToken.Kind.EQ, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.EQ, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '#':
-                    tok = new Token(IToken.Kind.NEQ, new char[]{input[pos]}, line, col);
+                    tok = new Token(Kind.NEQ, new char[]{input[pos]}, line, col);
                     advance();
                     break;
                 case '<':
                     if (pos != input.length - 1 && input[pos + 1] == '=') {
-                        tok = new Token(IToken.Kind.LE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                        tok = new Token(Kind.LE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
                         advance(2);
                     } else {
-                        tok = new Token(IToken.Kind.LT, new char[]{input[pos]}, line, col);
+                        tok = new Token(Kind.LT, new char[]{input[pos]}, line, col);
                         advance();
                     }
                     break;
                 case '>':
                     if (pos != input.length - 1 && input[pos + 1] == '=') {
-                        tok = new Token(IToken.Kind.GE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                        tok = new Token(Kind.GE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
                         advance(2);
                     } else {
-                        tok = new Token(IToken.Kind.GT, new char[]{input[pos]}, line, col);
+                        tok = new Token(Kind.GT, new char[]{input[pos]}, line, col);
                         advance();
                     }
                     break;
@@ -173,69 +224,69 @@ public class Lexer implements ILexer{
         Token tok = null;
         while (tok == null && tempPos <= input.length) {
             if (tempPos == input.length) {
-                return new Token(IToken.Kind.EOF, new char[]{}, tempLine, tempCol);
+                return new Token(Kind.EOF, new char[]{}, tempLine, tempCol);
             }
             switch (input[tempPos]) {
                 case '\n':
                     tempPos++; tempCol = 1; tempLine++;
                     break;
                 case '.':
-                    tok = new Token(IToken.Kind.DOT, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.DOT, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case ',':
-                    tok = new Token(IToken.Kind.COMMA, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.COMMA, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case ';':
-                    tok = new Token(IToken.Kind.SEMI, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.SEMI, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '"':
-                    tok = new Token(IToken.Kind.QUOTE, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.QUOTE, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '(':
-                    tok = new Token(IToken.Kind.LPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.LPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case ')':
-                    tok = new Token(IToken.Kind.RPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.RPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '+':
-                    tok = new Token(IToken.Kind.PLUS, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.PLUS, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '-':
-                    tok = new Token(IToken.Kind.MINUS, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.MINUS, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '*':
-                    tok = new Token(IToken.Kind.TIMES, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.TIMES, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '/':
-                    tok = new Token(IToken.Kind.DIV, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.DIV, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '%':
-                    tok = new Token(IToken.Kind.MOD, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.MOD, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '?':
-                    tok = new Token(IToken.Kind.QUESTION, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.QUESTION, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case '!':
-                    tok = new Token(IToken.Kind.BANG, new char[]{input[tempPos]}, tempLine, tempCol);
+                    tok = new Token(Kind.BANG, new char[]{input[tempPos]}, tempLine, tempCol);
                     tempPos++; tempCol++;
                     break;
                 case ':':
                     if (input[tempPos + 1] != '=') {
                         throw new LexicalException("Colons must be follow by =", tempLine, tempCol);
                     }
-                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, tempPos, tempPos + 2), tempLine, tempCol);
+                    tok = new Token(Kind.ASSIGN, Arrays.copyOfRange(input, tempPos, tempPos + 2), tempLine, tempCol);
                     tempPos++; tempCol++; tempPos++; tempCol++;
                     break;
 

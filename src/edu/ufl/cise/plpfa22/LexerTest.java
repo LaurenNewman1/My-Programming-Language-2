@@ -234,6 +234,17 @@ class LexerTest {
     }
 
     @Test
+    public void testKeyword() throws LexicalException {
+        String input = """
+				DO
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.KW_DO, 1, 1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
     public void testIdenInt() throws LexicalException {
         String input = """
 				a123 456b
