@@ -68,6 +68,13 @@ class LexerTest {
         assertEquals(new IToken.SourceLocation(expectedLine,expectedColumn), t.getSourceLocation());
     }
 
+    //check that this token  is an BOOLEAN_LIT with expected boolean value and position
+    void checkBool(IToken t, boolean expectedValue, int expectedLine, int expectedColumn) {
+        assertEquals(Kind.BOOLEAN_LIT, t.getKind());
+        assertEquals(expectedValue, t.getBooleanValue());
+        assertEquals(new IToken.SourceLocation(expectedLine,expectedColumn), t.getSourceLocation());
+    }
+
     //check that this token is the EOF token
     void checkEOF(IToken t) {
         checkToken(t, Kind.EOF);
@@ -182,6 +189,17 @@ class LexerTest {
         ILexer lexer = getLexer(input);
         checkInt(lexer.next(), 123, 1,1);
         checkInt(lexer.next(), 456, 1,5);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testBoolean() throws LexicalException {
+        String input = """
+				FALSE    
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkBool(lexer.next(), false, 1, 1);
         checkEOF(lexer.next());
     }
 

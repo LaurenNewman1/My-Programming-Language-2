@@ -32,7 +32,18 @@ public class Lexer implements ILexer{
             while (pos != input.length && Character.isDigit(input[pos])) {
                 advance();
             }
-            tok = new Token(IToken.Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos), line, startCol);
+            tok = new Token(IToken.Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos + 1), line, startCol);
+        }
+        // booleans
+        else if (pos + 3 < input.length && input[pos] == 'T'
+                && input[pos + 1] == 'R' && input[pos + 2] == 'U' && input[pos + 3] == 'E') {
+            tok = new Token(IToken.Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 4), line, col);
+            advance(4);
+        }
+        else if (pos + 3 < input.length && input[pos] == 'F' && input[pos + 1] == 'A'
+                && input[pos + 2] == 'L' && input[pos + 3] == 'S' && input[pos + 4] == 'E') {
+            tok = new Token(IToken.Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 5), line, col);
+            advance(5);
         }
         else {
             switch (input[pos]) {
@@ -95,9 +106,8 @@ public class Lexer implements ILexer{
                     if (input[pos + 1] != '=') {
                         throw new LexicalException("Colons must be follow by =", line, col);
                     }
-                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, pos, pos + 1), line, col);
-                    advance();
-                    advance();
+                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                    advance(2);
                     break;
                 case '=':
                     tok = new Token(IToken.Kind.EQ, new char[]{input[pos]}, line, col);
@@ -109,21 +119,21 @@ public class Lexer implements ILexer{
                     break;
                 case '<':
                     if (pos != input.length - 1 && input[pos + 1] == '=') {
-                        tok = new Token(IToken.Kind.LE, Arrays.copyOfRange(input, pos, pos + 1), line, col);
-                        advance();
+                        tok = new Token(IToken.Kind.LE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                        advance(2);
                     } else {
                         tok = new Token(IToken.Kind.LT, new char[]{input[pos]}, line, col);
+                        advance();
                     }
-                    advance();
                     break;
                 case '>':
                     if (pos != input.length - 1 && input[pos + 1] == '=') {
-                        tok = new Token(IToken.Kind.GE, Arrays.copyOfRange(input, pos, pos + 1), line, col);
-                        advance();
+                        tok = new Token(IToken.Kind.GE, Arrays.copyOfRange(input, pos, pos + 2), line, col);
+                        advance(2);
                     } else {
                         tok = new Token(IToken.Kind.GT, new char[]{input[pos]}, line, col);
+                        advance();
                     }
-                    advance();
                     break;
 
             }
@@ -200,7 +210,7 @@ public class Lexer implements ILexer{
                     if (input[tempPos + 1] != '=') {
                         throw new LexicalException("Colons must be follow by =", tempLine, tempCol);
                     }
-                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, tempPos, tempPos + 1), tempLine, tempCol);
+                    tok = new Token(IToken.Kind.ASSIGN, Arrays.copyOfRange(input, tempPos, tempPos + 2), tempLine, tempCol);
                     tempPos++; tempCol++; tempPos++; tempCol++;
                     break;
 
@@ -212,6 +222,11 @@ public class Lexer implements ILexer{
     private void advance() {
         this.pos++;
         this.col++;
+    }
+
+    private void advance(int steps) {
+        this.pos += steps;
+        this.col += steps;
     }
 
     private void newLine() {
