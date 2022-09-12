@@ -1,5 +1,7 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.Arrays;
+
 public class Token implements IToken{
 
     private Kind kind;
@@ -34,6 +36,39 @@ public class Token implements IToken{
     }
 
     public String getStringValue() {
-        return String.valueOf(text);
+        String literal = "";
+        for (int i = 1; i < text.length - 1; i++) {
+            if (text[i] == '\\') {
+                i++;
+                literal += createEscape(text[i]);
+            }
+            else {
+                literal += text[i];
+            }
+        }
+        return String.valueOf(literal);
+    }
+
+    private char createEscape(char c) {
+        switch (c) {
+            case 'b':
+                return '\b';
+            case 't':
+                return '\t';
+            case 'n':
+                return '\n';
+            case 'f':
+                return '\f';
+            case 'r':
+                return '\r';
+            case '"':
+                return '\"';
+            case '\'':
+                return '\'';
+            case '\\':
+                return '\\';
+            default:
+                return ' ';
+        }
     }
 }

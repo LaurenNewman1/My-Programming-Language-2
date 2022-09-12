@@ -52,32 +52,26 @@ public class Lexer implements ILexer{
                 && contains(Arrays.copyOfRange(input, pos + 1, input.length), '"')) {
             int startCol = col;
             int startLine = line;
+            int startPos = pos;
             int end = findIndex(input, pos + 1, '"');
-            String literal = "";
             advance();
             while (pos < end) {
                 if (input[pos] == '\\') {
-                    advance();
-                    if (pos == end || (input[pos] != 'b' && input[pos] != 't' && input[pos] != 'n'
-                        && input[pos] != 'f' && input[pos] != 'r' && input[pos] != '"'
-                        && input[pos] != '\'' && input[pos] != '\\')) {
+                    if (pos + 1 == end || (input[pos + 1] != 'b' && input[pos + 1] != 't' && input[pos + 1] != 'n'
+                        && input[pos + 1] != 'f' && input[pos + 1] != 'r' && input[pos + 1] != '"'
+                        && input[pos + 1] != '\'' && input[pos + 1] != '\\')) {
                         throw new LexicalException("Slash followed by invalid character", line, col);
                     }
-                    literal += createEscape(input[pos]);
-                    if (input[pos] == 'n') {
-                        newLine();
-                    }
-                    else {
-                        advance();
-                    }
+                }
+                if (input[pos] == 'n' && pos - 1 >= 0 && input[pos - 1] == '\\') {
+                    newLine();
                 }
                 else {
-                    literal += input[pos];
                     advance();
                 }
             }
             advance();
-            tok = new Token(Kind.STRING_LIT, literal.toCharArray(), startLine, startCol);
+            tok = new Token(Kind.STRING_LIT, Arrays.copyOfRange(input, startPos, pos), startLine, startCol);
         }
         // booleans
         else if (pos + 3 < input.length && input[pos] == 'T'
@@ -402,28 +396,5 @@ public class Lexer implements ILexer{
             }
         }
         return found;
-    }
-
-    private char createEscape(char c) {
-        switch (c) {
-            case 'b':
-                return '\b';
-            case 't':
-                return '\t';
-            case 'n':
-                return '\n';
-            case 'f':
-                return '\f';
-            case 'r':
-                return '\r';
-            case '"':
-                return '\"';
-            case '\'':
-                return '\'';
-            case '\\':
-                return '\\';
-            default:
-                return ' ';
-        }
     }
 }
