@@ -38,7 +38,8 @@ public class Lexer implements ILexer{
         // strings
         else if (pos + 1 < input.length && input[pos] == '"'
                 && contains(Arrays.copyOfRange(input, pos + 1, input.length), '"')) {
-            int start = col;
+            int startCol = col;
+            int startLine = line;
             int end = findIndex(input, pos + 1, '"');
             String literal = "";
             advance();
@@ -51,14 +52,20 @@ public class Lexer implements ILexer{
                         throw new LexicalException("Slash followed by invalid character", line, col);
                     }
                     literal += createEscape(input[pos]);
+                    if (input[pos] == 'n') {
+                        newLine();
+                    }
+                    else {
+                        advance();
+                    }
                 }
                 else {
                     literal += input[pos];
+                    advance();
                 }
-                advance();
             }
             advance();
-            tok = new Token(Kind.STRING_LIT, literal.toCharArray(), line, start);
+            tok = new Token(Kind.STRING_LIT, literal.toCharArray(), startLine, startCol);
         }
         // booleans
         else if (pos + 3 < input.length && input[pos] == 'T'

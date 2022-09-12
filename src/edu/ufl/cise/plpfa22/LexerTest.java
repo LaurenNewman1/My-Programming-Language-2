@@ -229,7 +229,7 @@ class LexerTest {
         show(input);
         ILexer lexer = getLexer(input);
         checkString(lexer.next(), "Hello\nWorld", 1, 1);
-        checkString(lexer.next(), "Hello\tAgain", 2, 1);
+        checkString(lexer.next(), "Hello\tAgain", 3, 1);
         checkEOF(lexer.next());
     }
 
