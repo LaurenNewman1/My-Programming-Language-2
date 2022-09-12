@@ -134,6 +134,48 @@ class LexerTest {
         checkEOF(lexer.next());
     }
 
+    @Test
+    void testAssignError() throws LexicalException {
+        String input = """
+				:
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
+    }
+
+    @Test
+    void testAllChars() throws LexicalException {
+        String input = """
+				.,;"()+-*/%?!:==#<<=>>=
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.DOT, 1,1);
+        checkToken(lexer.next(), Kind.COMMA, 1,2);
+        checkToken(lexer.next(), Kind.SEMI, 1,3);
+        checkToken(lexer.next(), Kind.QUOTE, 1,4);
+        checkToken(lexer.next(), Kind.LPAREN, 1,5);
+        checkToken(lexer.next(), Kind.RPAREN, 1,6);
+        checkToken(lexer.next(), Kind.PLUS, 1,7);
+        checkToken(lexer.next(), Kind.MINUS, 1,8);
+        checkToken(lexer.next(), Kind.TIMES, 1,9);
+        checkToken(lexer.next(), Kind.DIV, 1,10);
+        checkToken(lexer.next(), Kind.MOD, 1,11);
+        checkToken(lexer.next(), Kind.QUESTION, 1,12);
+        checkToken(lexer.next(), Kind.BANG, 1,13);
+        checkToken(lexer.next(), Kind.ASSIGN, 1,14);
+        checkToken(lexer.next(), Kind.EQ, 1,16);
+        checkToken(lexer.next(), Kind.NEQ, 1,17);
+        checkToken(lexer.next(), Kind.LT, 1,18);
+        checkToken(lexer.next(), Kind.LE, 1,19);
+        checkToken(lexer.next(), Kind.GT, 1,21);
+        checkToken(lexer.next(), Kind.GE, 1,22);
+        checkEOF(lexer.next());
+    }
+
     //comments should be skipped
     @Test
     void testComment0() throws LexicalException {
@@ -266,6 +308,45 @@ class LexerTest {
         checkToken(lexer.next(), Kind.KW_DO, 1, 1);
         checkEOF(lexer.next());
     }
+
+    @Test
+    public void testAllreserved1() throws LexicalException {
+        String input ="""
+        CONST VAR PROCEDURE
+             CALL BEGIN END
+                //next is line 3
+                IF THEN WHILE DO
+       
+        """;
+
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.KW_CONST, 1,1);
+        checkToken(lexer.next(), Kind.KW_VAR, 1,7);
+        checkToken(lexer.next(), Kind.KW_PROCEDURE, 1,11);
+        checkToken(lexer.next(), Kind.KW_CALL, 2,6);
+        checkToken(lexer.next(), Kind.KW_BEGIN, 2,11);
+        checkToken(lexer.next(), Kind.KW_END, 2,17);
+        checkToken(lexer.next(), Kind.KW_IF, 4,9);
+        checkToken(lexer.next(), Kind.KW_THEN, 4,12);
+        checkToken(lexer.next(), Kind.KW_WHILE, 4,17);
+        checkToken(lexer.next(), Kind.KW_DO, 4,23);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testNoSpace() throws LexicalException {
+        String input ="""
+        12+3
+        """;
+
+        ILexer lexer = getLexer(input);
+        checkInt(lexer.next(), 12, 1, 1);
+        checkToken(lexer.next(), Kind.PLUS, 1, 3 );
+        checkInt(lexer.next(), 3, 1, 4);
+        checkEOF(lexer.next());
+    }
+
+
 
     @Test
     public void testIdenInt() throws LexicalException {

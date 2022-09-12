@@ -143,9 +143,6 @@ public class Lexer implements ILexer{
         }
         else {
             switch (input[pos]) {
-                case '\n':
-                    newLine();
-                    break;
                 case '.':
                     tok = new Token(Kind.DOT, new char[]{input[pos]}, line, col);
                     advance();
@@ -396,7 +393,7 @@ public class Lexer implements ILexer{
 
     private boolean handleComments() {
         boolean found = false;
-        if (pos < input.length && input[pos] == '/' && pos + 1 != input.length && input[pos] == '/') {
+        if (pos < input.length && input[pos] == '/' && pos + 1 != input.length && input[pos + 1] == '/') {
             found = true;
             while (pos != input.length && input[pos] != '\r' && input[pos] != '\n') {
                 advance();
