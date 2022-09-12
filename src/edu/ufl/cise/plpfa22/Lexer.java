@@ -33,7 +33,7 @@ public class Lexer implements ILexer{
             while (pos != input.length && Character.isDigit(input[pos])) {
                 advance();
             }
-            tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos + 1), line, startCol);
+            tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos), line, startCol);
         }
         // strings
         else if (pos + 1 < input.length && input[pos] == '"'
@@ -220,6 +220,12 @@ public class Lexer implements ILexer{
                     break;
                 // identifiers
                 default:
+                    int startPos = pos;
+                    int startCol = col;
+                    while (!isWhitespace(input[pos])) {
+                        advance();
+                    }
+                    tok = new Token(Kind.IDENT, Arrays.copyOfRange(input, startPos, pos), line, startCol);
                     break;
 
             }
@@ -337,6 +343,12 @@ public class Lexer implements ILexer{
             }
         }
         return -1;
+    }
+
+    private boolean isWhitespace(char c) {
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+            return true;
+        return false;
     }
 
     private void handleWhitespace() {
