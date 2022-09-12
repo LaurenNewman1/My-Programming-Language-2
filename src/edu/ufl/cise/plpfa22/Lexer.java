@@ -235,11 +235,8 @@ public class Lexer implements ILexer{
                     }
                     int startPos = pos;
                     int startCol = col;
-                    while (!isWhitespace(input[pos])) {
-                        if (!Character.isAlphabetic(input[pos]) && !Character.isDigit(input[pos])
-                                && input[pos] != '_' && input[pos] != '$') {
-                            throw new LexicalException("Invalid identifier", line, col);
-                        }
+                    while (!isWhitespace(input[pos]) && (Character.isAlphabetic(input[pos])
+                            || Character.isDigit(input[pos]) || input[pos] == '_' || input[pos] == '$')) {
                         advance();
                     }
                     tok = new Token(Kind.IDENT, Arrays.copyOfRange(input, startPos, pos), line, startCol);

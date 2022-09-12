@@ -179,7 +179,6 @@ class LexerTest {
     //comments should be skipped
     @Test
     void testComment0() throws LexicalException {
-        //Note that the quotes around "This is a string" are passed to the lexer.
         String input = """
 				"This is a string"
 				// this is a comment
@@ -189,6 +188,16 @@ class LexerTest {
         ILexer lexer = getLexer(input);
         checkToken(lexer.next(), Kind.STRING_LIT, 1,1);
         checkToken(lexer.next(), Kind.TIMES, 3,1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    void testComment1() throws LexicalException {
+        String input = """
+				///
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
         checkEOF(lexer.next());
     }
 
@@ -310,6 +319,18 @@ class LexerTest {
     }
 
     @Test
+    public void testKeywordBacktoBack() throws LexicalException {
+        String input = """
+				DOWHILE
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.KW_DO, 1, 1);
+        checkToken(lexer.next(), Kind.KW_WHILE, 1, 3);
+        checkEOF(lexer.next());
+    }
+
+    @Test
     public void testAllreserved1() throws LexicalException {
         String input ="""
         CONST VAR PROCEDURE
@@ -359,6 +380,24 @@ class LexerTest {
         checkInt(lexer.next(), 456, 1,6);
         checkIdent(lexer.next(), "b",1,9);
         checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testInvalidIdent() throws LexicalException {
+        String input = """
+				$valid_123
+				valid_and_symbol+
+				invalid^
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "$valid_123", 1,1);
+        checkIdent(lexer.next(), "valid_and_symbol", 2,1);
+        checkToken(lexer.next(), Kind.PLUS, 2, 17);
+        checkIdent(lexer.next(), "invalid", 3,1);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
     }
 
 
