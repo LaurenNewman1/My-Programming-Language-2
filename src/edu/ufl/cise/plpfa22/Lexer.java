@@ -211,6 +211,9 @@ public class Lexer implements ILexer{
                         advance();
                     }
                     break;
+                // identifiers
+                default:
+                    break;
 
             }
         }
@@ -322,7 +325,7 @@ public class Lexer implements ILexer{
 
     private int findIndex(char[] arr, int i, char c) {
         for (; i < arr.length; i++) {
-            if (arr[i] == c) {
+            if (arr[i] == c && (i > 0 ? arr[i - 1] != '\\' : true)) {
                 return i;
             }
         }

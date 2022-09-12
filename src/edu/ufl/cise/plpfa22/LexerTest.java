@@ -234,6 +234,17 @@ class LexerTest {
     }
 
     @Test
+    public void testString2() throws LexicalException {
+        String input = """
+				"Hello\\"World"
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "Hello\"World", 1, 1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
     public void testKeyword() throws LexicalException {
         String input = """
 				DO
