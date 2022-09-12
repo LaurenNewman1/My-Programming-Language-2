@@ -32,12 +32,17 @@ public class Lexer implements ILexer{
         }
         // numbers
         if (Character.isDigit(input[pos])) {
-            int start = pos;
+            int startPos = pos;
             int startCol = col;
-            while (pos != input.length && Character.isDigit(input[pos])) {
+            boolean zeroStart = false;
+            if (input[pos] == '0') {
+                zeroStart = true;
                 advance();
             }
-            tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, start, pos), line, startCol);
+            while (pos != input.length && Character.isDigit(input[pos]) && !zeroStart) {
+                advance();
+            }
+            tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, startPos, pos), line, startCol);
         }
         // strings
         else if (pos + 1 < input.length && input[pos] == '"'

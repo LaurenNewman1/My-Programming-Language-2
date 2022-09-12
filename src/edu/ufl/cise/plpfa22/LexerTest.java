@@ -187,7 +187,7 @@ class LexerTest {
     }
 
     @Test
-    public void testNumber() throws LexicalException {
+    public void testNumber0() throws LexicalException {
         String input = """
 				123 456
 				""";
@@ -195,6 +195,18 @@ class LexerTest {
         ILexer lexer = getLexer(input);
         checkInt(lexer.next(), 123, 1,1);
         checkInt(lexer.next(), 456, 1,5);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testNumber1() throws LexicalException {
+        String input = """
+				010
+				""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkInt(lexer.next(), 0, 1,1);
+        checkInt(lexer.next(), 10, 1,2);
         checkEOF(lexer.next());
     }
 
