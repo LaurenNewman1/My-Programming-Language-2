@@ -54,19 +54,26 @@ public class Lexer implements ILexer{
             int startLine = line;
             int startPos = pos;
             int end = findIndex(input, pos + 1, '"');
+            int slashCount = 0;
             advance();
             while (pos < end) {
                 if (input[pos] == '\\') {
                     if (pos + 1 == end || (input[pos + 1] != 'b' && input[pos + 1] != 't' && input[pos + 1] != 'n'
                         && input[pos + 1] != 'f' && input[pos + 1] != 'r' && input[pos + 1] != '"'
                         && input[pos + 1] != '\'' && input[pos + 1] != '\\')) {
-                        throw new LexicalException("Slash followed by invalid character", line, col);
+                        if ((slashCount + 1) % 2 != 0) {
+                            throw new LexicalException("Slash followed by invalid character", line, col);
+                        }
                     }
+                    slashCount++;
+                    advance();
                 }
-                if (input[pos] == 'n' && pos - 1 >= 0 && input[pos - 1] == '\\') {
+                else if (input[pos] == 'n' && pos - 1 >= 0 && input[pos - 1] == '\\') {
+                    slashCount = 0;
                     newLine();
                 }
                 else {
+                    slashCount = 0;
                     advance();
                 }
             }
