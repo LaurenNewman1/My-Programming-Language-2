@@ -21,7 +21,11 @@ public class Lexer implements ILexer{
     public IToken next() throws LexicalException {
         Token tok = null;
         // remove any spaces
-        handleWhitespace();
+        boolean found = true;
+        while (found) {
+            found = handleWhitespace();
+            found = handleComments() || found;
+        }
         // check for end of input
         if (pos == input.length) {
             return new Token(Kind.EOF, new char[]{}, line, col);
@@ -220,9 +224,16 @@ public class Lexer implements ILexer{
                     break;
                 // identifiers
                 default:
+                    if (!Character.isAlphabetic(input[pos]) && input[pos] != '_' && input[pos] != '$') {
+                        throw new LexicalException("Invalid identifier", line, col);
+                    }
                     int startPos = pos;
                     int startCol = col;
                     while (!isWhitespace(input[pos])) {
+                        if (!Character.isAlphabetic(input[pos]) && !Character.isDigit(input[pos])
+                                && input[pos] != '_' && input[pos] != '$') {
+                            throw new LexicalException("Invalid identifier", line, col);
+                        }
                         advance();
                     }
                     tok = new Token(Kind.IDENT, Arrays.copyOfRange(input, startPos, pos), line, startCol);
@@ -351,9 +362,11 @@ public class Lexer implements ILexer{
         return false;
     }
 
-    private void handleWhitespace() {
+    private boolean handleWhitespace() {
+        boolean found = false;
         while (pos != input.length
                 && (input[pos] == '\t' || input[pos] == '\r' || input[pos] == '\n' || input[pos] == ' ')) {
+            found = true;
             switch (input[pos]) {
                 case '\t':
                     pos++; col += 8;
@@ -369,6 +382,18 @@ public class Lexer implements ILexer{
                     break;
             }
         }
+        return found;
+    }
+
+    private boolean handleComments() {
+        boolean found = false;
+        if (pos < input.length && input[pos] == '/' && pos + 1 != input.length && input[pos] == '/') {
+            found = true;
+            while (pos != input.length && input[pos] != '\r' && input[pos] != '\n') {
+                advance();
+            }
+        }
+        return found;
     }
 
     private char createEscape(char c) {
