@@ -325,8 +325,7 @@ class LexerTest {
 				""";
         show(input);
         ILexer lexer = getLexer(input);
-        checkToken(lexer.next(), Kind.KW_DO, 1, 1);
-        checkToken(lexer.next(), Kind.KW_WHILE, 1, 3);
+        checkIdent(lexer.next(), "DOWHILE", 1, 1);
         checkEOF(lexer.next());
     }
 
@@ -416,6 +415,73 @@ class LexerTest {
     }
 
     @Test
+    public void testIllegalPhrase() throws LexicalException {
+        String input = """
+				illegal\\8
+				""";
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "illegal", 1, 1);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
+    }
+
+    @Test
+    public void testIllegalString() throws LexicalException {
+        String input = """
+				"illegal\\8"
+				""";
+        ILexer lexer = getLexer(input);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
+    }
+
+    @Test
+    public void testStringQuotes() throws LexicalException {
+        String input = """
+				"hel'"lo"
+				""";
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "hel'", 1, 1);
+        checkIdent(lexer.next(), "lo", 1, 7);
+        checkToken(lexer.next(), Kind.QUOTE, 1, 9);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testReservedvsIdent() throws LexicalException {
+        String input = """
+                TRUE1
+                FALSE1
+                CONST1
+                VAR1
+                PROCEDURE1
+                CALL1
+                BEGIN1
+                END1
+                IF1
+                THEN1
+                WHILE1
+                DO1
+                """;
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "TRUE1", 1, 1);
+        checkIdent(lexer.next(), "FALSE1", 2, 1);
+        checkIdent(lexer.next(), "CONST1", 3, 1);
+        checkIdent(lexer.next(), "VAR1", 4, 1);
+        checkIdent(lexer.next(), "PROCEDURE1", 5, 1);
+        checkIdent(lexer.next(), "CALL1", 6, 1);
+        checkIdent(lexer.next(), "BEGIN1", 7, 1);
+        checkIdent(lexer.next(), "END1", 8, 1);
+        checkIdent(lexer.next(), "IF1", 9, 1);
+        checkIdent(lexer.next(), "THEN1", 10, 1);
+        checkIdent(lexer.next(), "WHILE1", 11, 1);
+        checkIdent(lexer.next(), "DO1", 12, 1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
     public void testUnterminatedString() throws LexicalException {
         String input = """
 				"unterminated
@@ -496,16 +562,15 @@ class LexerTest {
     public void testWithoutSpacing() throws LexicalException {
         String input = """
         "String";TRUEVAR99ident//comment
-        /
+        /99HiDO
         """;
         ILexer lexer = getLexer(input);
         checkString(lexer.next(), "String", 1,1);
         checkToken(lexer.next(), Kind.SEMI, 1,9);
-        checkBool(lexer.next(), true, 1,10);
-        checkToken(lexer.next(), Kind.KW_VAR, 1,14);
-        checkInt(lexer.next(), 99, 1, 17);
-        checkIdent(lexer.next(), "ident", 1,19);
+        checkIdent(lexer.next(), "TRUEVAR99ident", 1,10);
         checkToken(lexer.next(), Kind.DIV, 2,1);
+        checkInt(lexer.next(), 99, 2, 2);
+        checkIdent(lexer.next(), "HiDO", 2, 4);
         checkEOF(lexer.next());
     }
 

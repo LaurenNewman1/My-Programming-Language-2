@@ -85,62 +85,72 @@ public class Lexer implements ILexer{
         }
         // booleans
         else if (pos + 3 < input.length && input[pos] == 'T'
-                && input[pos + 1] == 'R' && input[pos + 2] == 'U' && input[pos + 3] == 'E') {
+                && input[pos + 1] == 'R' && input[pos + 2] == 'U' && input[pos + 3] == 'E'
+                && (pos + 4 == input.length || isWhitespace(input[pos + 4]))) {
             tok = new Token(Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 4), line, col);
             advance(4);
         }
         else if (pos + 4 < input.length && input[pos] == 'F' && input[pos + 1] == 'A'
-                && input[pos + 2] == 'L' && input[pos + 3] == 'S' && input[pos + 4] == 'E') {
+                && input[pos + 2] == 'L' && input[pos + 3] == 'S' && input[pos + 4] == 'E'
+                && (pos + 5 == input.length || isWhitespace(input[pos + 5]))) {
             tok = new Token(Kind.BOOLEAN_LIT, Arrays.copyOfRange(input, pos, pos + 5), line, col);
             advance(5);
         }
         // keywords
         else if (pos + 4 < input.length && input[pos] == 'C' && input[pos + 1] == 'O'
-                && input[pos + 2] == 'N' && input[pos + 3] == 'S' && input[pos + 4] == 'T') {
+                && input[pos + 2] == 'N' && input[pos + 3] == 'S' && input[pos + 4] == 'T'
+                && (pos + 5 == input.length || isWhitespace(input[pos + 5]))) {
             tok = new Token(Kind.KW_CONST, Arrays.copyOfRange(input, pos, pos + 5), line, col);
             advance(5);
         }
         else if (pos + 2 < input.length && input[pos] == 'V' && input[pos + 1] == 'A'
-                && input[pos + 2] == 'R') {
+                && input[pos + 2] == 'R' && (pos + 3 == input.length || isWhitespace(input[pos + 3]))) {
             tok = new Token(Kind.KW_VAR, Arrays.copyOfRange(input, pos, pos + 3), line, col);
             advance(3);
         }
         else if (pos + 8 < input.length && input[pos] == 'P' && input[pos + 1] == 'R' && input[pos + 2] == 'O'
                 && input[pos + 3] == 'C' && input[pos + 4] == 'E' && input[pos + 5] == 'D'
-                && input[pos + 6] == 'U' && input[pos + 7] == 'R' && input[pos + 8] == 'E') {
+                && input[pos + 6] == 'U' && input[pos + 7] == 'R' && input[pos + 8] == 'E'
+                && (pos + 9 == input.length || isWhitespace(input[pos + 9]))) {
             tok = new Token(Kind.KW_PROCEDURE, Arrays.copyOfRange(input, pos, pos + 9), line, col);
             advance(9);
         }
         else if (pos + 3 < input.length && input[pos] == 'C' && input[pos + 1] == 'A'
-                && input[pos + 2] == 'L' && input[pos + 3] == 'L') {
+                && input[pos + 2] == 'L' && input[pos + 3] == 'L'
+                && (pos + 4 == input.length || isWhitespace(input[pos + 4]))) {
             tok = new Token(Kind.KW_CALL, Arrays.copyOfRange(input, pos, pos + 4), line, col);
             advance(4);
         }
         else if (pos + 4 < input.length && input[pos] == 'B' && input[pos + 1] == 'E'
-                && input[pos + 2] == 'G' && input[pos + 3] == 'I' && input[pos + 4] == 'N') {
+                && input[pos + 2] == 'G' && input[pos + 3] == 'I' && input[pos + 4] == 'N'
+                && (pos + 5 == input.length || isWhitespace(input[pos + 5]))) {
             tok = new Token(Kind.KW_BEGIN, Arrays.copyOfRange(input, pos, pos + 5), line, col);
             advance(5);
         }
         else if (pos + 2 < input.length && input[pos] == 'E' && input[pos + 1] == 'N'
-                && input[pos + 2] == 'D') {
+                && input[pos + 2] == 'D' && (pos + 3 == input.length || isWhitespace(input[pos + 3]))) {
             tok = new Token(Kind.KW_END, Arrays.copyOfRange(input, pos, pos + 3), line, col);
             advance(3);
         }
-        else if (pos + 1 < input.length && input[pos] == 'I' && input[pos + 1] == 'F') {
+        else if (pos + 1 < input.length && input[pos] == 'I' && input[pos + 1] == 'F'
+                && (pos + 2 == input.length || isWhitespace(input[pos + 2]))) {
             tok = new Token(Kind.KW_IF, Arrays.copyOfRange(input, pos, pos + 2), line, col);
             advance(2);
         }
         else if (pos + 3 < input.length && input[pos] == 'T' && input[pos + 1] == 'H'
-                && input[pos + 2] == 'E' && input[pos + 3] == 'N') {
+                && input[pos + 2] == 'E' && input[pos + 3] == 'N'
+                && (pos + 4 == input.length || isWhitespace(input[pos + 4]))) {
             tok = new Token(Kind.KW_THEN, Arrays.copyOfRange(input, pos, pos + 4), line, col);
             advance(4);
         }
         else if (pos + 4 < input.length && input[pos] == 'W' && input[pos + 1] == 'H'
-                && input[pos + 2] == 'I' && input[pos + 3] == 'L' && input[pos + 4] == 'E') {
+                && input[pos + 2] == 'I' && input[pos + 3] == 'L' && input[pos + 4] == 'E'
+                && (pos + 5 == input.length || isWhitespace(input[pos + 5]))) {
             tok = new Token(Kind.KW_WHILE, Arrays.copyOfRange(input, pos, pos + 5), line, col);
             advance(5);
         }
-        else if (pos + 1 < input.length && input[pos] == 'D' && input[pos + 1] == 'O') {
+        else if (pos + 1 < input.length && input[pos] == 'D' && input[pos + 1] == 'O'
+                && (pos + 2 == input.length || isWhitespace(input[pos + 2]))) {
             tok = new Token(Kind.KW_DO, Arrays.copyOfRange(input, pos, pos + 2), line, col);
             advance(2);
         }
