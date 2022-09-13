@@ -51,12 +51,14 @@ public class Lexer implements ILexer{
             tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, startPos, pos), line, startCol);
         }
         // strings
-        else if (pos + 1 < input.length && input[pos] == '"'
-                && contains(Arrays.copyOfRange(input, pos + 1, input.length), '"')) {
+        else if (pos + 1 < input.length && input[pos] == '"') {
             int startCol = col;
             int startLine = line;
             int startPos = pos;
             int end = findIndex(input, pos + 1, '"');
+            if (end == -1) {
+                throw new LexicalException("Unterminated string", startLine, startCol);
+            }
             int slashCount = 0;
             advance();
             while (pos < end) {
@@ -168,10 +170,6 @@ public class Lexer implements ILexer{
                     tok = new Token(Kind.SEMI, new char[]{input[pos]}, line, col);
                     advance();
                     break;
-                case '"':
-                    tok = new Token(Kind.QUOTE, new char[]{input[pos]}, line, col);
-                    advance();
-                    break;
                 case '(':
                     tok = new Token(Kind.LPAREN, new char[]{input[pos]}, line, col);
                     advance();
@@ -261,6 +259,7 @@ public class Lexer implements ILexer{
     }
 
     public IToken peek() throws LexicalException {
+        // TODO
         return new Token(Kind.EOF, new char[]{}, line, col);
     }
 

@@ -21,7 +21,6 @@ public interface IToken {
         DOT,	// .
         COMMA,  // ,
         SEMI,   // ;
-        QUOTE,  // "
         LPAREN, // (
         RPAREN, // )
         PLUS,   // +

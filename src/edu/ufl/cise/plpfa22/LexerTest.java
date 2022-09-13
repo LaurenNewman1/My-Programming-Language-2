@@ -149,14 +149,14 @@ class LexerTest {
     @Test
     void testAllChars() throws LexicalException {
         String input = """
-				.,;"()+-*/%?!:==#<<=>>=
+				.,;;()+-*/%?!:==#<<=>>=
 				""";
         show(input);
         ILexer lexer = getLexer(input);
         checkToken(lexer.next(), Kind.DOT, 1,1);
         checkToken(lexer.next(), Kind.COMMA, 1,2);
         checkToken(lexer.next(), Kind.SEMI, 1,3);
-        checkToken(lexer.next(), Kind.QUOTE, 1,4);
+        checkToken(lexer.next(), Kind.SEMI, 1,4);
         checkToken(lexer.next(), Kind.LPAREN, 1,5);
         checkToken(lexer.next(), Kind.RPAREN, 1,6);
         checkToken(lexer.next(), Kind.PLUS, 1,7);
@@ -438,18 +438,6 @@ class LexerTest {
     }
 
     @Test
-    public void testStringQuotes() throws LexicalException {
-        String input = """
-				"hel'"lo"
-				""";
-        ILexer lexer = getLexer(input);
-        checkString(lexer.next(), "hel'", 1, 1);
-        checkIdent(lexer.next(), "lo", 1, 7);
-        checkToken(lexer.next(), Kind.QUOTE, 1, 9);
-        checkEOF(lexer.next());
-    }
-
-    @Test
     public void testReservedvsIdent() throws LexicalException {
         String input = """
                 TRUE1
@@ -487,9 +475,9 @@ class LexerTest {
 				"unterminated
 				""";
         ILexer lexer = getLexer(input);
-        checkToken(lexer.next(), Kind.QUOTE, 1, 1);
-        checkIdent(lexer.next(), "unterminated", 1,2);
-        checkEOF(lexer.next());
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
     }
 
 
