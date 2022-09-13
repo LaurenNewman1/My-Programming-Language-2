@@ -415,6 +415,16 @@ class LexerTest {
         });
     }
 
+    @Test
+    public void testUnterminatedString() throws LexicalException {
+        String input = """
+				"unterminated
+				""";
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.QUOTE, 1, 1);
+        checkIdent(lexer.next(), "unterminated", 1,2);
+        checkEOF(lexer.next());
+    }
 
 
     @Test

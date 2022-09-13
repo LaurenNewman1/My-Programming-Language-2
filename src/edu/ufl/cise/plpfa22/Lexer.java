@@ -40,9 +40,13 @@ public class Lexer implements ILexer{
             }
             while (pos != input.length && Character.isDigit(input[pos]) && !zeroStart) {
                 advance();
-                if (Long.parseLong(String.valueOf(Arrays.copyOfRange(input, startPos, pos))) > 2147483647) {
-                    throw new LexicalException("Integer too large", line, startCol);
-                }
+            }
+            // check size
+            try {
+                Integer.parseInt(String.valueOf(Arrays.copyOfRange(input, startPos, pos)));
+            }
+            catch (Exception ex) {
+                throw new LexicalException("Integer too large", line, startCol);
             }
             tok = new Token(Kind.NUM_LIT, Arrays.copyOfRange(input, startPos, pos), line, startCol);
         }
