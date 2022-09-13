@@ -509,6 +509,16 @@ class LexerTest {
         assertEquals(expectedText,text);
     }
 
+    @Test
+    public void testEscapeSequences2() throws LexicalException {
+        String input = "\"esc\\\"";
+        show(input);
+        ILexer lexer = getLexer(input);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
+    }
+
     //Mix of ID's, Num_lit, comments, string_lit's
     @Test
     public void testIDNNUM() throws LexicalException {
@@ -562,6 +572,68 @@ class LexerTest {
         checkEOF(lexer.next());
     }
 
+    @Test
+    public void testLongInput0() throws LexicalException {
+        String input = """
+        VAR x = 0;
+        VAR y = TRUE;
+        VAR z = "a";
+        DO
+            x = x + 1;
+            y = !y;
+            z = z + "a";
+        WHILE (x < 10)
+        """;
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.KW_VAR, 1, 1);
+        checkIdent(lexer.next(), "x", 1, 5);
+        checkToken(lexer.next(), Kind.EQ, 1, 7);
+        checkInt(lexer.next(), 0, 1, 9);
+        checkToken(lexer.next(), Kind.SEMI, 1, 10);
+
+        checkToken(lexer.next(), Kind.KW_VAR, 2, 1);
+        checkIdent(lexer.next(), "y", 2, 5);
+        checkToken(lexer.next(), Kind.EQ, 2, 7);
+        checkBool(lexer.next(), true, 2, 9);
+        checkToken(lexer.next(), Kind.SEMI, 2, 13);
+
+        checkToken(lexer.next(), Kind.KW_VAR, 3, 1);
+        checkIdent(lexer.next(), "z", 3, 5);
+        checkToken(lexer.next(), Kind.EQ, 3, 7);
+        checkString(lexer.next(), "a", 3, 9);
+        checkToken(lexer.next(), Kind.SEMI, 3, 12);
+
+        checkToken(lexer.next(), Kind.KW_DO, 4, 1);
+
+        checkIdent(lexer.next(), "x", 5, 5);
+        checkToken(lexer.next(), Kind.EQ, 5, 7);
+        checkIdent(lexer.next(), "x", 5, 9);
+        checkToken(lexer.next(), Kind.PLUS, 5, 11);
+        checkInt(lexer.next(), 1, 5, 13);
+        checkToken(lexer.next(), Kind.SEMI, 5, 14);
+
+        checkIdent(lexer.next(), "y", 6, 5);
+        checkToken(lexer.next(), Kind.EQ, 6, 7);
+        checkToken(lexer.next(), Kind.BANG, 6, 9);
+        checkIdent(lexer.next(), "y", 6, 10);
+        checkToken(lexer.next(), Kind.SEMI, 6, 11);
+
+        checkIdent(lexer.next(), "z", 7, 5);
+        checkToken(lexer.next(), Kind.EQ, 7, 7);
+        checkIdent(lexer.next(), "z", 7, 9);
+        checkToken(lexer.next(), Kind.PLUS, 7, 11);
+        checkString(lexer.next(), "a", 7, 13);
+        checkToken(lexer.next(), Kind.SEMI, 7, 16);
+
+        checkToken(lexer.next(), Kind.KW_WHILE, 8, 1);
+        checkToken(lexer.next(), Kind.LPAREN, 8, 7);
+        checkIdent(lexer.next(), "x", 8, 8);
+        checkToken(lexer.next(), Kind.LT, 8, 10);
+        checkInt(lexer.next(), 10, 8, 12);
+        checkToken(lexer.next(), Kind.RPAREN, 8, 14);
+
+        checkEOF(lexer.next());
+    }
 
 
 }
