@@ -385,7 +385,7 @@ class LexerTest {
     @Test
     public void testInvalidIdent() throws LexicalException {
         String input = """
-				$valid_123
+				$valid_123  
 				valid_and_symbol+
 				invalid^
 				""";
@@ -444,6 +444,63 @@ class LexerTest {
         String expectedText = "\" ...  \\\"  \\\'  \\\\  \""; //almost the same as input, but white space is omitted
         assertEquals(expectedText,text);
     }
+
+    //Mix of ID's, Num_lit, comments, string_lit's
+    @Test
+    public void testIDNNUM() throws LexicalException {
+        String input = """
+        df123 345 g546 IF
+        //next is string
+
+         "Hello, World"
+        """;
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "df123", 1,1);
+        checkInt(lexer.next(), 345, 1,7);
+        checkIdent(lexer.next(), "g546", 1,11);
+        checkToken(lexer.next(), Kind.KW_IF, 1,16);
+        checkToken(lexer.next(), Kind.STRING_LIT, 4,2);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testLineAndCol() throws LexicalException {
+        String input = """
+        1  Test
+        
+            DO  ;
+            IF
+         Hi
+        """;
+        ILexer lexer = getLexer(input);
+        checkInt(lexer.next(), 1, 1,1);
+        checkIdent(lexer.next(), "Test", 1,4);
+        checkToken(lexer.next(), Kind.KW_DO, 3,5);
+        checkToken(lexer.next(), Kind.SEMI, 3,9);
+        checkToken(lexer.next(), Kind.KW_IF, 4,5);
+        checkIdent(lexer.next(), "Hi", 5,2);
+        checkEOF(lexer.next());
+    }
+
+    @Test
+    public void testWithoutSpacing() throws LexicalException {
+        String input = """
+        "String";TRUEVAR99ident//comment
+        /
+        """;
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "String", 1,1);
+        checkToken(lexer.next(), Kind.SEMI, 1,9);
+        checkBool(lexer.next(), true, 1,10);
+        checkToken(lexer.next(), Kind.KW_VAR, 1,14);
+        checkInt(lexer.next(), 99, 1, 17);
+        checkIdent(lexer.next(), "ident", 1,19);
+        checkToken(lexer.next(), Kind.DIV, 2,1);
+        checkEOF(lexer.next());
+    }
+
+
+
 }
 
 

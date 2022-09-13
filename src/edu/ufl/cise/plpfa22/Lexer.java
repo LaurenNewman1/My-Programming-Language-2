@@ -7,20 +7,19 @@ public class Lexer implements ILexer{
 
     private char[] input;
     private int pos;
-    private int len;
-    private int line;
     private int col;
+    private int line;
 
     public Lexer(String input) {
         this.input = input.toCharArray();
         this.pos = 0;
-        this.line = 1;
         this.col = 1;
+        this.line = 1;
     }
 
     public IToken next() throws LexicalException {
         Token tok = null;
-        // remove any spaces
+        // remove any spaces and comments
         boolean found = true;
         while (found) {
             found = handleWhitespace();
@@ -248,81 +247,7 @@ public class Lexer implements ILexer{
     }
 
     public IToken peek() throws LexicalException {
-        int tempPos = pos;
-        int tempLine = line;
-        int tempCol = col;
-        Token tok = null;
-        while (tok == null && tempPos <= input.length) {
-            if (tempPos == input.length) {
-                return new Token(Kind.EOF, new char[]{}, tempLine, tempCol);
-            }
-            switch (input[tempPos]) {
-                case '\n':
-                    tempPos++; tempCol = 1; tempLine++;
-                    break;
-                case '.':
-                    tok = new Token(Kind.DOT, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case ',':
-                    tok = new Token(Kind.COMMA, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case ';':
-                    tok = new Token(Kind.SEMI, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '"':
-                    tok = new Token(Kind.QUOTE, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '(':
-                    tok = new Token(Kind.LPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case ')':
-                    tok = new Token(Kind.RPAREN, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '+':
-                    tok = new Token(Kind.PLUS, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '-':
-                    tok = new Token(Kind.MINUS, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '*':
-                    tok = new Token(Kind.TIMES, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '/':
-                    tok = new Token(Kind.DIV, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '%':
-                    tok = new Token(Kind.MOD, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '?':
-                    tok = new Token(Kind.QUESTION, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case '!':
-                    tok = new Token(Kind.BANG, new char[]{input[tempPos]}, tempLine, tempCol);
-                    tempPos++; tempCol++;
-                    break;
-                case ':':
-                    if (input[tempPos + 1] != '=') {
-                        throw new LexicalException("Colons must be follow by =", tempLine, tempCol);
-                    }
-                    tok = new Token(Kind.ASSIGN, Arrays.copyOfRange(input, tempPos, tempPos + 2), tempLine, tempCol);
-                    tempPos++; tempCol++; tempPos++; tempCol++;
-                    break;
-
-            }
-        }
-        return tok;
+        return new Token(Kind.EOF, new char[]{}, line, col);
     }
 
     private void advance() {
@@ -372,7 +297,7 @@ public class Lexer implements ILexer{
             found = true;
             switch (input[pos]) {
                 case '\t':
-                    pos++; col += 8;
+                    pos++; col++;
                     break;
                 case '\n':
                     pos++; col = 1; line++;
