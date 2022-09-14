@@ -292,7 +292,7 @@ class LexerTest {
         show(input);
         ILexer lexer = getLexer(input);
         checkString(lexer.next(), "Hello\nWorld", 1, 1);
-        checkString(lexer.next(), "Hello\tAgain", 3, 1);
+        checkString(lexer.next(), "Hello\tAgain", 2, 1);
         checkEOF(lexer.next());
     }
 
@@ -470,11 +470,23 @@ class LexerTest {
     }
 
     @Test
-    public void testUnterminatedString() throws LexicalException {
+    public void testUnterminatedString0() throws LexicalException {
         String input = """
 				"unterminated
 				""";
         ILexer lexer = getLexer(input);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
+    }
+
+    @Test
+    public void testUnterminatedString1() throws LexicalException {
+        String input = """
+				"unterminated""
+				""";
+        ILexer lexer = getLexer(input);
+        checkString(lexer.next(), "unterminated", 1, 1);
         assertThrows(LexicalException.class, () -> {
             lexer.next();
         });
@@ -633,6 +645,60 @@ class LexerTest {
         checkToken(lexer.next(), Kind.RPAREN, 8, 14);
 
         checkEOF(lexer.next());
+    }
+
+    // colon cannot be followed by anything but = sign
+    @Test
+    void testColon() throws LexicalException {
+        String input = """
+        foo
+        :bar
+                """;
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "foo");
+        assertThrows(LexicalException.class, () -> {
+            @SuppressWarnings("unused")
+            IToken token = lexer.next();
+        });
+    }
+
+    //to test correct function of newline in string
+    @Test
+    void stringSpaces() throws LexicalException
+    {
+
+        String input = """
+   			 "Line 1 \n"
+   			 "Line 3 \\n"
+   			 "Line 4"
+   			 "Column\t""Column\\t"abc
+   			 """;
+
+
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.STRING_LIT, 1,1);
+        checkToken(lexer.next(), Kind.STRING_LIT, 3,1);
+        checkToken(lexer.next(), Kind.STRING_LIT, 4,1);
+        checkToken(lexer.next(), Kind.STRING_LIT, 5,1);
+        checkToken(lexer.next(), Kind.STRING_LIT, 5,10);
+        checkToken(lexer.next(), Kind.IDENT, 5,20);
+    }
+
+    @Test
+    void testIncompleteAssign() throws LexicalException {
+        String input = """
+                .,;:
+                """;
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkToken(lexer.next(), Kind.DOT, 1, 1);
+        checkToken(lexer.next(), Kind.COMMA, 1, 2);
+        checkToken(lexer.next(), Kind.SEMI, 1, 3);
+        assertThrows(LexicalException.class, () -> {
+            lexer.next();
+        });
     }
 
 

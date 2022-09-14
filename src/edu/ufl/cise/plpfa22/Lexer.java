@@ -73,7 +73,7 @@ public class Lexer implements ILexer{
                     slashCount++;
                     advance();
                 }
-                else if (input[pos] == 'n' && pos - 1 >= 0 && input[pos - 1] == '\\') {
+                else if (input[pos] == '\n') {
                     slashCount = 0;
                     newLine();
                 }
