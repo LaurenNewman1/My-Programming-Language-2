@@ -26,7 +26,7 @@ public class Lexer implements ILexer{
             found = handleComments() || found;
         }
         // check for end of input
-        if (pos == input.length) {
+        if (pos >= input.length) {
             return new Token(Kind.EOF, new char[]{}, line, col);
         }
         // numbers
@@ -259,8 +259,16 @@ public class Lexer implements ILexer{
     }
 
     public IToken peek() throws LexicalException {
-        // TODO
-        return new Token(Kind.EOF, new char[]{}, line, col);
+        // record current positions
+        int tempPos = pos;
+        int tempLine = line;
+        int tempCol = col;
+        IToken tok = next();
+        // reset positions
+        pos = tempPos;
+        line = tempLine;
+        col = tempCol;
+        return tok;
     }
 
     private void advance() {
