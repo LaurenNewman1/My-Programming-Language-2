@@ -3,6 +3,7 @@ package edu.ufl.cise.plpfa22;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import edu.ufl.cise.plpfa22.IToken.Kind;
 
 import java.util.List;
 
@@ -36,6 +37,29 @@ class ParserTest {
 	ASTNode getAST(String input) throws PLPException {
 		IParser parser = CompilerComponentFactory.getParser(CompilerComponentFactory.getLexer(input));
 		return parser.parse();
+	}
+
+	void checkToken(IToken t, Kind expectedKind, int expectedLine, int expectedColumn){
+		assertEquals(expectedKind, t.getKind());
+		assertEquals(new IToken.SourceLocation(expectedLine,expectedColumn), t.getSourceLocation());
+	}
+
+	void checkAST(ASTNode ast, Class type, Token first) {
+		assertThat(ast, instanceOf(type));
+		checkToken(ast.firstToken, first.getKind(), first.getSourceLocation().line(), first.getSourceLocation().column());
+	}
+
+	@Test
+	void testExpression() throws PLPException {
+		String input = """
+						a * b
+						""";
+		ASTNode ast = getAST(input);
+		assertThat(ast, instanceOf(ExpressionBinary.class));
+		checkToken(ast.firstToken, Kind.IDENT,1, 1);
+		assertThat(((ExpressionBinary)ast).e0, instanceOf(ExpressionIdent.class));
+		checkToken(((ExpressionBinary)ast).op, Kind.TIMES,1, 3);
+		assertThat(((ExpressionBinary)ast).e1, instanceOf(ExpressionIdent.class));
 	}
 
 	@Test
