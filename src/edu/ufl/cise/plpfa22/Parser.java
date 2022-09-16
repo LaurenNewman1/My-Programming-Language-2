@@ -4,6 +4,8 @@ import edu.ufl.cise.plpfa22.ast.*;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Parser implements IParser{
 
@@ -14,9 +16,119 @@ public class Parser implements IParser{
     }
     public ASTNode parse() throws PLPException {
         while (!lexer.peek().equals(Kind.EOF)) {
-            return parseExpr();
+            return parseStmt();
         }
         return new ExpressionBooleanLit(new Token(Kind.EOF, new char[]{' '}, 1, 1));
+    }
+
+    public Statement parseStmt() throws PLPException {
+        switch (lexer.peek().getKind()) {
+            case IDENT:
+                return parseAssignStmt();
+            case KW_CALL:
+                return parseCallStmt();
+            case QUESTION:
+                return parseInputStmt();
+            case BANG:
+                return parseOutputStmt();
+            case KW_BEGIN:
+                return parseBlockStmt();
+            case KW_IF:
+                return parseIfStmt();
+            case KW_WHILE:
+                return parseWhileStmt();
+            case EOF:
+                return parseEmptyStmt();
+            default:
+                throw new SyntaxException("Invalid statement");
+        }
+    }
+
+    public StatementAssign parseAssignStmt() throws PLPException {
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in assign statement.");
+        }
+        IToken ident = lexer.next();
+        // discard :=
+        if (!lexer.peek().getKind().equals(Kind.ASSIGN)) {
+            throw new SyntaxException("Missing assignment operator");
+        }
+        lexer.next();
+        Expression expr = parseExpr();
+        return new StatementAssign(ident, (Ident)ident, expr);
+    }
+
+    public StatementCall parseCallStmt() throws PLPException {
+        // discard CALL
+        IToken first = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in call statement.");
+        }
+        Ident ident = (Ident)lexer.next();
+        return new StatementCall(first, ident);
+    }
+
+    public StatementInput parseInputStmt() throws PLPException {
+        // discard ?
+        IToken first = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in input statement.");
+        }
+        Ident ident = (Ident)lexer.next();
+        return new StatementInput(first, ident);
+    }
+
+    public StatementOutput parseOutputStmt() throws PLPException {
+        // discard !
+        IToken first = lexer.next();
+        Expression expr = parseExpr();
+        return new StatementOutput(first, expr);
+    }
+
+    public StatementBlock parseBlockStmt() throws PLPException {
+        // discard BEGIN
+        IToken first = lexer.next();
+        List<Statement> stmts = new ArrayList<>();
+        stmts.add(parseStmt());
+        while (lexer.peek().getKind().equals(Kind.SEMI)) {
+            stmts.add(parseStmt());
+        }
+        // discard END
+        if (!lexer.peek().getKind().equals(Kind.KW_END)) {
+            throw new SyntaxException("Missing END in BEGIN statement.");
+        }
+        lexer.next();
+        return new StatementBlock(first, stmts);
+    }
+
+    public StatementIf parseIfStmt() throws PLPException {
+        // discard IF
+        IToken first = lexer.next();
+        Expression expr = parseExpr();
+        // discard DO
+        if (!lexer.peek().getKind().equals(Kind.KW_THEN)) {
+            throw new SyntaxException("Missing THEN in IF statement.");
+        }
+        lexer.next();
+        Statement stmt = parseStmt();
+        return new StatementIf(first, expr, stmt);
+    }
+
+    public StatementWhile parseWhileStmt() throws PLPException {
+        // discard WHILE
+        IToken first = lexer.next();
+        Expression expr = parseExpr();
+        // discard DO
+        if (!lexer.peek().getKind().equals(Kind.KW_DO)) {
+            throw new SyntaxException("Missing DO in WHILE statement.");
+        }
+        lexer.next();
+        Statement stmt = parseStmt();
+        return new StatementWhile(first, expr, stmt);
+    }
+
+    public StatementEmpty parseEmptyStmt() throws PLPException {
+        return new StatementEmpty(lexer.next());
     }
 
     public Expression parseExpr() throws PLPException {
