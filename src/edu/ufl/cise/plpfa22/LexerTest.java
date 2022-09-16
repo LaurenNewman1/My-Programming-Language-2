@@ -404,6 +404,16 @@ class LexerTest {
     }
 
     @Test
+    public void testIdent() throws LexicalException {
+        String input = """
+				ident""";
+        show(input);
+        ILexer lexer = getLexer(input);
+        checkIdent(lexer.next(), "ident", 1,1);
+        checkEOF(lexer.next());
+    }
+
+    @Test
     public void testInvalidIdent0() throws LexicalException {
         String input = """
 				$valid_123  

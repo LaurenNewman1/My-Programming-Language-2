@@ -246,7 +246,7 @@ public class Lexer implements ILexer{
                     }
                     int startPos = pos;
                     int startCol = col;
-                    while (!isWhitespace(input[pos]) && (Character.isAlphabetic(input[pos])
+                    while (pos < input.length && !isWhitespace(input[pos]) && (Character.isAlphabetic(input[pos])
                             || Character.isDigit(input[pos]) || input[pos] == '_' || input[pos] == '$')) {
                         advance();
                     }
