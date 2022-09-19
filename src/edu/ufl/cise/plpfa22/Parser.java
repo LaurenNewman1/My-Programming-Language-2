@@ -20,7 +20,7 @@ public class Parser implements IParser{
         IToken first = lexer.peek();
         Block block = parseBlock();
         IToken temp = lexer.peek();
-        if (!lexer.peek().getKind().equals(Kind.DOT)) {
+        if (!isKind(Kind.DOT)) {
             throw new SyntaxException("Missing . at the end of program.");
         }
         // discard .
@@ -33,13 +33,13 @@ public class Parser implements IParser{
         List<VarDec> vars = new ArrayList<>();
         List<ProcDec> procedures = new ArrayList<>();
         IToken first = lexer.peek();
-        while (lexer.peek().getKind().equals(Kind.KW_CONST)) {
+        while (isKind(Kind.KW_CONST)) {
             consts.addAll(parseConstDec());
         }
-        while (lexer.peek().getKind().equals(Kind.KW_VAR)) {
+        while (isKind(Kind.KW_VAR)) {
             vars.addAll(parseVarDec());
         }
-        while (lexer.peek().getKind().equals(Kind.KW_PROCEDURE)) {
+        while (isKind(Kind.KW_PROCEDURE)) {
             procedures.add(parseProcDec());
         }
         Statement stmt = parseStmt();
@@ -50,25 +50,25 @@ public class Parser implements IParser{
         List<ConstDec> consts = new ArrayList<>();
         // discard CONST
         IToken first = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in const declaration.");
         }
         IToken ident = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.EQ)) {
+        if (!isKind(Kind.EQ)) {
             throw new SyntaxException("Missing equal in const declaration.");
         }
         // discard =
         lexer.next();
         Expression constVal = parseConstExpr();
         consts.add(new ConstDec(first, ident, constVal));
-        while (lexer.peek().getKind().equals(Kind.COMMA)) {
+        while (isKind(Kind.COMMA)) {
             // discard ,
             lexer.next();
-            if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            if (!isKind(Kind.IDENT)) {
                 throw new SyntaxException("Identifier type required in variable declaration.");
             }
             IToken identNext = lexer.next();
-            if (!lexer.peek().getKind().equals(Kind.EQ)) {
+            if (!isKind(Kind.EQ)) {
                 throw new SyntaxException("Missing equal in const declaration.");
             }
             // discard =
@@ -76,7 +76,7 @@ public class Parser implements IParser{
             Expression constValNext = parseConstExpr();
             consts.add(new ConstDec(first, identNext, constValNext));
         }
-        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+        if (!isKind(Kind.SEMI)) {
             throw new SyntaxException("Missing semicolon in const declaration.");
         }
         // discard ;
@@ -88,19 +88,19 @@ public class Parser implements IParser{
         List<VarDec> vars = new ArrayList<>();
         // discard VAR
         IToken first = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in variable declaration.");
         }
         vars.add(new VarDec(lexer.peek(), lexer.next()));
-        while (lexer.peek().getKind().equals(Kind.COMMA)) {
+        while (isKind(Kind.COMMA)) {
             // discard ,
             lexer.next();
-            if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            if (!isKind(Kind.IDENT)) {
                 throw new SyntaxException("Identifier type required in variable declaration.");
             }
             vars.add(new VarDec(lexer.peek(), lexer.next()));
         }
-        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+        if (!isKind(Kind.SEMI)) {
             throw new SyntaxException("Missing semicolon in variable declaration.");
         }
         // discard ;
@@ -111,17 +111,17 @@ public class Parser implements IParser{
     public ProcDec parseProcDec() throws PLPException {
         // discard PROCEDURE
         IToken first = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in procedure declaration.");
         }
         IToken ident = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+        if (!isKind(Kind.SEMI)) {
             throw new SyntaxException("Missing semicolon in procedure declaration.");
         }
         // discard ;
         lexer.next();
         Block block = parseBlock();
-        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+        if (!isKind(Kind.SEMI)) {
             throw new SyntaxException("Missing semicolon in procedure declaration.");
         }
         // discard ;
@@ -158,7 +158,7 @@ public class Parser implements IParser{
         IToken first = lexer.peek();
         Ident ident = parseIdent();
         // discard :=
-        if (!lexer.peek().getKind().equals(Kind.ASSIGN)) {
+        if (!isKind(Kind.ASSIGN)) {
             throw new SyntaxException("Missing assignment operator");
         }
         lexer.next();
@@ -169,7 +169,7 @@ public class Parser implements IParser{
     public StatementCall parseCallStmt() throws PLPException {
         // discard CALL
         IToken first = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in call statement.");
         }
         Ident ident = parseIdent();
@@ -179,7 +179,7 @@ public class Parser implements IParser{
     public StatementInput parseInputStmt() throws PLPException {
         // discard ?
         IToken first = lexer.next();
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in input statement.");
         }
         Ident ident = parseIdent();
@@ -198,13 +198,13 @@ public class Parser implements IParser{
         IToken first = lexer.next();
         List<Statement> stmts = new ArrayList<>();
         stmts.add(parseStmt());
-        while (lexer.peek().getKind().equals(Kind.SEMI)) {
+        while (isKind(Kind.SEMI)) {
             // discard ;
             lexer.next();
             stmts.add(parseStmt());
         }
         // discard END
-        if (!lexer.peek().getKind().equals(Kind.KW_END)) {
+        if (!isKind(Kind.KW_END)) {
             throw new SyntaxException("Missing END in BEGIN statement.");
         }
         lexer.next();
@@ -216,7 +216,7 @@ public class Parser implements IParser{
         IToken first = lexer.next();
         Expression expr = parseExpr();
         // discard DO
-        if (!lexer.peek().getKind().equals(Kind.KW_THEN)) {
+        if (!isKind(Kind.KW_THEN)) {
             throw new SyntaxException("Missing THEN in IF statement.");
         }
         lexer.next();
@@ -229,7 +229,7 @@ public class Parser implements IParser{
         IToken first = lexer.next();
         Expression expr = parseExpr();
         // discard DO
-        if (!lexer.peek().getKind().equals(Kind.KW_DO)) {
+        if (!isKind(Kind.KW_DO)) {
             throw new SyntaxException("Missing DO in WHILE statement.");
         }
         lexer.next();
@@ -244,9 +244,8 @@ public class Parser implements IParser{
     public Expression parseExpr() throws PLPException {
         IToken first = lexer.peek();
         Expression e0 = parseAdditiveExpr();
-        if (lexer.peek().getKind().equals(Kind.LT) || lexer.peek().getKind().equals(Kind.GT)
-            || lexer.peek().getKind().equals(Kind.EQ) || lexer.peek().getKind().equals(Kind.NEQ)
-            || lexer.peek().getKind().equals(Kind.LE) || lexer.peek().getKind().equals(Kind.GE)) {
+        if (isKind(Kind.LT) || isKind(Kind.GT) || isKind(Kind.EQ) || isKind(Kind.NEQ)
+            || isKind(Kind.LE) || isKind(Kind.GE)) {
             IToken op = lexer.next();
             Expression e1 = parseAdditiveExpr();
             return new ExpressionBinary(first, e0, op, e1);
@@ -258,7 +257,7 @@ public class Parser implements IParser{
         IToken first = lexer.peek();
         Expression e0 = parseMultiplicativeExpr();
         Expression e1;
-        while (lexer.peek().getKind().equals(Kind.PLUS) || lexer.peek().getKind().equals(Kind.MINUS)) {
+        while (isKind(Kind.PLUS) || isKind(Kind.MINUS)) {
             IToken op = lexer.next();
             e1 = parseMultiplicativeExpr();
             e0 = new ExpressionBinary(first, e0, op, e1);
@@ -270,8 +269,7 @@ public class Parser implements IParser{
         IToken first = lexer.peek();
         Expression e0 = parsePrimaryExpr();
         Expression e1;
-        while (lexer.peek().getKind().equals(Kind.TIMES) || lexer.peek().getKind().equals(Kind.DIV)
-            || lexer.peek().getKind().equals(Kind.MOD)) {
+        while (isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)) {
             IToken op = lexer.next();
             e1 = parsePrimaryExpr();
             e0 = new ExpressionBinary(first, e0, op, e1);
@@ -313,7 +311,7 @@ public class Parser implements IParser{
         // discard parenthesis
         lexer.next();
         Expression expr = parseExpr();
-        if (!lexer.peek().getKind().equals(Kind.RPAREN)) {
+        if (!isKind(Kind.RPAREN)) {
             throw new SyntaxException("Missing closing parenthesis");
         }
         lexer.next();
@@ -338,10 +336,16 @@ public class Parser implements IParser{
     }
 
     public Ident parseIdent() throws PLPException {
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+        if (!isKind(Kind.IDENT)) {
             throw new SyntaxException("Required type identifier");
         }
         return new Ident(lexer.next());
+    }
+
+    private boolean isKind(Kind kind) throws PLPException {
+        if (lexer.peek().getKind().equals(kind))
+            return true;
+        return false;
     }
 
 }
