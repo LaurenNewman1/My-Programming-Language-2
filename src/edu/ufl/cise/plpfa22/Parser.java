@@ -175,11 +175,12 @@ public class Parser implements IParser{
     public Expression parseExpr() throws SyntaxException {
         IToken first = peek();
         Expression e0 = parseAdditiveExpr();
-        if (isKind(Kind.LT) || isKind(Kind.GT) || isKind(Kind.EQ) || isKind(Kind.NEQ)
+        Expression e1;
+        while (isKind(Kind.LT) || isKind(Kind.GT) || isKind(Kind.EQ) || isKind(Kind.NEQ)
             || isKind(Kind.LE) || isKind(Kind.GE)) {
             IToken op = consume();
-            Expression e1 = parseAdditiveExpr();
-            return new ExpressionBinary(first, e0, op, e1);
+            e1 = parseAdditiveExpr();
+            e0 = new ExpressionBinary(first, e0, op, e1);
         }
         return e0;
     }

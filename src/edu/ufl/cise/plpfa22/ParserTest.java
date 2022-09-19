@@ -825,4 +825,145 @@ class ParserTest {
 		System.out.println(ex.getMessage());
 	}
 
+	@Test
+		// Missing second expression
+	void test26() throws PLPException {
+		String input = """
+				!"Hello"%
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Missing first expression
+	void test27() throws PLPException {
+		String input = """
+				!-20
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Missing first expression
+	void test28() throws PLPException {
+		String input = """
+				!/20
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Double Additive Expression
+	void test29() throws PLPException {
+		String input = """
+				!1 - FALSE + "Hi".""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionBinary.class));
+		IToken first = expr.firstToken;
+		Expression e0 = ((ExpressionBinary)expr).e0;
+		IToken op = ((ExpressionBinary)expr).op;
+		Expression e1 = ((ExpressionBinary)expr).e1;
+		assertThat(e0, instanceOf(ExpressionBinary.class));
+		IToken e0_first = e0.firstToken;
+		Expression e0_e0 = ((ExpressionBinary)e0).e0;
+		IToken e0_op = ((ExpressionBinary)e0).op;
+		Expression e0_e1 = ((ExpressionBinary)e0).e1;
+		assertEquals(1, e0_first.getIntValue());
+		assertThat(e0_e0, instanceOf(ExpressionNumLit.class));
+		assertEquals(1, e0_e0.firstToken.getIntValue());
+		assertEquals("-", String.valueOf(e0_op.getText()));
+		assertThat(e0_e1, instanceOf(ExpressionBooleanLit.class));
+		assertEquals(false, e0_e1.firstToken.getBooleanValue());
+		assertEquals("+", String.valueOf(op.getText()));
+		assertThat(e1, instanceOf(ExpressionStringLit.class));
+		assertEquals("Hi", e1.firstToken.getStringValue());
+	}
+
+	@Test
+		// Invalid Double Additive
+	void test30() throws PLPException {
+		String input = """
+				!1 - FALSE + 
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Order of Operations
+	void test31() throws PLPException {
+		String input = """
+				!1 * FALSE + "Hi".""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionBinary.class));
+		IToken first = expr.firstToken;
+		Expression e0 = ((ExpressionBinary)expr).e0;
+		IToken op = ((ExpressionBinary)expr).op;
+		Expression e1 = ((ExpressionBinary)expr).e1;
+		assertThat(e0, instanceOf(ExpressionBinary.class));
+		IToken e0_first = e0.firstToken;
+		Expression e0_e0 = ((ExpressionBinary)e0).e0;
+		IToken e0_op = ((ExpressionBinary)e0).op;
+		Expression e0_e1 = ((ExpressionBinary)e0).e1;
+		assertEquals(1, e0_first.getIntValue());
+		assertThat(e0_e0, instanceOf(ExpressionNumLit.class));
+		assertEquals(1, e0_e0.firstToken.getIntValue());
+		assertEquals("*", String.valueOf(e0_op.getText()));
+		assertThat(e0_e1, instanceOf(ExpressionBooleanLit.class));
+		assertEquals(false, e0_e1.firstToken.getBooleanValue());
+		assertEquals("+", String.valueOf(op.getText()));
+		assertThat(e1, instanceOf(ExpressionStringLit.class));
+		assertEquals("Hi", e1.firstToken.getStringValue());
+	}
+
+	@Test
+		// Order of Operations Reversed
+	void test32() throws PLPException {
+		String input = """
+				!1 + FALSE * "Hi".""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionBinary.class));
+		IToken first = expr.firstToken;
+		Expression e0 = ((ExpressionBinary)expr).e0;
+		IToken op = ((ExpressionBinary)expr).op;
+		Expression e1 = ((ExpressionBinary)expr).e1;
+		assertEquals("+", String.valueOf(op.getText()));
+		assertThat(e0, instanceOf(ExpressionNumLit.class));
+		assertEquals(1, e0.firstToken.getIntValue());
+		assertThat(e1, instanceOf(ExpressionBinary.class));
+		IToken e1_first = e1.firstToken;
+		Expression e1_e0 = ((ExpressionBinary)e1).e0;
+		IToken e1_op = ((ExpressionBinary)e1).op;
+		Expression e1_e1 = ((ExpressionBinary)e1).e1;
+		assertEquals(false, e1_first.getBooleanValue());
+		assertThat(e1_e0, instanceOf(ExpressionBooleanLit.class));
+		assertEquals(false, e1_e0.firstToken.getBooleanValue());
+		assertEquals("*", String.valueOf(e1_op.getText()));
+		assertThat(e1_e1, instanceOf(ExpressionStringLit.class));
+		assertEquals("Hi", e1_e1.firstToken.getStringValue());
+	}
+
 }
