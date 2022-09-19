@@ -169,6 +169,7 @@ public class Parser implements IParser{
     }
 
     public StatementEmpty parseEmptyStmt() throws SyntaxException{
+        // don't remove DOT; handled later
         return new StatementEmpty(peek());
     }
 
