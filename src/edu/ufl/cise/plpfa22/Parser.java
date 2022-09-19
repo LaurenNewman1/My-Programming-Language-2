@@ -19,6 +19,7 @@ public class Parser implements IParser{
     public Program parseProgram() throws PLPException {
         IToken first = lexer.peek();
         Block block = parseBlock();
+        IToken temp = lexer.peek();
         if (!lexer.peek().getKind().equals(Kind.DOT)) {
             throw new SyntaxException("Missing . at the end of program.");
         }
@@ -171,7 +172,7 @@ public class Parser implements IParser{
         if (!lexer.peek().getKind().equals(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in call statement.");
         }
-        Ident ident = (Ident)lexer.next();
+        Ident ident = parseIdent();
         return new StatementCall(first, ident);
     }
 
@@ -181,7 +182,7 @@ public class Parser implements IParser{
         if (!lexer.peek().getKind().equals(Kind.IDENT)) {
             throw new SyntaxException("Identifier type required in input statement.");
         }
-        Ident ident = (Ident)lexer.next();
+        Ident ident = parseIdent();
         return new StatementInput(first, ident);
     }
 
@@ -203,7 +204,6 @@ public class Parser implements IParser{
             stmts.add(parseStmt());
         }
         // discard END
-        IToken temp = lexer.peek();
         if (!lexer.peek().getKind().equals(Kind.KW_END)) {
             throw new SyntaxException("Missing END in BEGIN statement.");
         }
@@ -257,10 +257,11 @@ public class Parser implements IParser{
     public Expression parseAdditiveExpr() throws PLPException {
         IToken first = lexer.peek();
         Expression e0 = parseMultiplicativeExpr();
-        if (lexer.peek().getKind().equals(Kind.PLUS) || lexer.peek().getKind().equals(Kind.MINUS)) {
+        Expression e1;
+        while (lexer.peek().getKind().equals(Kind.PLUS) || lexer.peek().getKind().equals(Kind.MINUS)) {
             IToken op = lexer.next();
-            Expression e1 = parseMultiplicativeExpr();
-            return new ExpressionBinary(first, e0, op, e1);
+            e1 = parseMultiplicativeExpr();
+            e0 = new ExpressionBinary(first, e0, op, e1);
         }
         return e0;
     }
@@ -268,11 +269,12 @@ public class Parser implements IParser{
     public Expression parseMultiplicativeExpr() throws PLPException {
         IToken first = lexer.peek();
         Expression e0 = parsePrimaryExpr();
-        if (lexer.peek().getKind().equals(Kind.TIMES) || lexer.peek().getKind().equals(Kind.DIV)
+        Expression e1;
+        while (lexer.peek().getKind().equals(Kind.TIMES) || lexer.peek().getKind().equals(Kind.DIV)
             || lexer.peek().getKind().equals(Kind.MOD)) {
             IToken op = lexer.next();
-            Expression e1 = parsePrimaryExpr();
-            return new ExpressionBinary(first, e0, op, e1);
+            e1 = parsePrimaryExpr();
+            e0 = new ExpressionBinary(first, e0, op, e1);
         }
         return e0;
     }
