@@ -2,8 +2,6 @@ package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.*;
 import edu.ufl.cise.plpfa22.IToken.Kind;
-
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +58,7 @@ public class Parser implements IParser{
         }
         // discard =
         lexer.next();
-        Expression constVal = parseConst();
+        Expression constVal = parseConstExpr();
         consts.add(new ConstDec(first, ident, constVal));
         while (lexer.peek().getKind().equals(Kind.COMMA)) {
             // discard ,
@@ -74,7 +72,7 @@ public class Parser implements IParser{
             }
             // discard =
             lexer.next();
-            Expression constValNext = parseConst();
+            Expression constValNext = parseConstExpr();
             consts.add(new ConstDec(first, identNext, constValNext));
         }
         if (!lexer.peek().getKind().equals(Kind.SEMI)) {
@@ -130,19 +128,6 @@ public class Parser implements IParser{
         return new ProcDec(first, ident, block);
     }
 
-    // TODO does our language allow more than 1 statement
-    public StatementBlock parseStmtBlock() throws PLPException {
-        List<Statement> stmts = new ArrayList<>();
-        IToken first = lexer.peek();
-        while (lexer.peek().getKind().equals(Kind.IDENT) || lexer.peek().getKind().equals(Kind.KW_CALL)
-                || lexer.peek().getKind().equals(Kind.QUESTION) || lexer.peek().getKind().equals(Kind.BANG)
-                || lexer.peek().getKind().equals(Kind.KW_BEGIN) || lexer.peek().getKind().equals(Kind.KW_IF)
-                || lexer.peek().getKind().equals(Kind.KW_WHILE)) {
-            stmts.add(parseStmt());
-        }
-        return new StatementBlock(first, stmts);
-    }
-
     public Statement parseStmt() throws PLPException {
         switch (lexer.peek().getKind()) {
             case IDENT:
@@ -159,6 +144,8 @@ public class Parser implements IParser{
                 return parseIfStmt();
             case KW_WHILE:
                 return parseWhileStmt();
+            case DOT:
+                return new StatementEmpty(lexer.peek());
             case EOF:
                 return parseEmptyStmt();
             default:
@@ -167,17 +154,15 @@ public class Parser implements IParser{
     }
 
     public StatementAssign parseAssignStmt() throws PLPException {
-        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
-            throw new SyntaxException("Identifier type required in assign statement.");
-        }
-        IToken ident = lexer.next();
+        IToken first = lexer.peek();
+        Ident ident = parseIdent();
         // discard :=
         if (!lexer.peek().getKind().equals(Kind.ASSIGN)) {
             throw new SyntaxException("Missing assignment operator");
         }
         lexer.next();
         Expression expr = parseExpr();
-        return new StatementAssign(ident, (Ident)ident, expr);
+        return new StatementAssign(first, ident, expr);
     }
 
     public StatementCall parseCallStmt() throws PLPException {
@@ -213,9 +198,12 @@ public class Parser implements IParser{
         List<Statement> stmts = new ArrayList<>();
         stmts.add(parseStmt());
         while (lexer.peek().getKind().equals(Kind.SEMI)) {
+            // discard ;
+            lexer.next();
             stmts.add(parseStmt());
         }
         // discard END
+        IToken temp = lexer.peek();
         if (!lexer.peek().getKind().equals(Kind.KW_END)) {
             throw new SyntaxException("Missing END in BEGIN statement.");
         }
@@ -292,34 +280,34 @@ public class Parser implements IParser{
     public Expression parsePrimaryExpr() throws PLPException {
         switch (lexer.peek().getKind()) {
             case IDENT:
-                return parseIdent();
+                return parseIdentExpr();
             case BOOLEAN_LIT:
-                return parseConst();
+                return parseConstExpr();
             case STRING_LIT:
-                return parseConst();
+                return parseConstExpr();
             case NUM_LIT:
-                return parseConst();
+                return parseConstExpr();
             case LPAREN:
-                return parseParen();
+                return parseParenExpr();
             default:
                 throw new SyntaxException("Invalid primary expression.");
         }
     }
 
-    public Expression parseConst() throws PLPException {
+    public Expression parseConstExpr() throws PLPException {
         switch (lexer.peek().getKind()) {
             case BOOLEAN_LIT:
-                return parseBoolean();
+                return parseBooleanExpr();
             case STRING_LIT:
-                return parseString();
+                return parseStringExpr();
             case NUM_LIT:
-                return parseNumber();
+                return parseNumberExpr();
             default:
                 throw new SyntaxException("Invalid constant");
         }
     }
 
-    public Expression parseParen() throws PLPException {
+    public Expression parseParenExpr() throws PLPException {
         // discard parenthesis
         lexer.next();
         Expression expr = parseExpr();
@@ -330,26 +318,28 @@ public class Parser implements IParser{
         return expr;
     }
 
-    public ExpressionIdent parseIdent() throws PLPException {
-        ExpressionIdent exp = new ExpressionIdent(lexer.peek());
-        exp.setDec(parseVarDecSingle());
+    public ExpressionIdent parseIdentExpr() throws PLPException {
+        ExpressionIdent exp = new ExpressionIdent(lexer.next());
         return exp;
     }
 
-    public VarDec parseVarDecSingle() throws PLPException {
-        return new VarDec(lexer.peek(), lexer.next());
-    }
-
-    public ExpressionBooleanLit parseBoolean() throws PLPException {
+    public ExpressionBooleanLit parseBooleanExpr() throws PLPException {
         return new ExpressionBooleanLit(lexer.next());
     }
 
-    public ExpressionNumLit parseNumber() throws PLPException {
+    public ExpressionNumLit parseNumberExpr() throws PLPException {
         return new ExpressionNumLit(lexer.next());
     }
 
-    public ExpressionStringLit parseString() throws PLPException {
+    public ExpressionStringLit parseStringExpr() throws PLPException {
         return new ExpressionStringLit(lexer.next());
+    }
+
+    public Ident parseIdent() throws PLPException {
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Required type identifier");
+        }
+        return new Ident(lexer.next());
     }
 
 }
