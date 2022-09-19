@@ -1149,4 +1149,167 @@ class ParserTest {
 		});
 		System.out.println(ex.getMessage());
 	}
+
+	@Test
+		// Missing DO in WHILE
+	void test42() throws PLPException {
+		String input = """
+				WHILE TRUE
+					! x
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Missing WHILE with DO
+	void test43() throws PLPException {
+		String input = """
+				TRUE
+				DO ! x
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Invalid statement in while loop
+	void test44() throws PLPException {
+		String input = """
+				WHILE FALSE
+				DO 12
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Ending statement with ;
+	void test45() throws PLPException {
+		String input = """
+				WHILE FALSE
+				DO ? ident;
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// IF without THEN
+	void test46() throws PLPException {
+		String input = """
+				IF x <= 2
+					! x
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// THEN without IF
+	void test47() throws PLPException {
+		String input = """
+				y >= "Hi"
+				THEN ! y
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// BEGIN without END
+	void test48() throws PLPException {
+		String input = """
+				BEGIN
+					! x.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// END without BEGIN
+	void test49() throws PLPException {
+		String input = """
+				!x END.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Invalid input
+	void test50() throws PLPException {
+		String input = """
+				?.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Attempts to print a statement
+	void test51() throws PLPException {
+		String input = """
+				!!.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Attempts to input into a non-ident
+	void test52() throws PLPException {
+		String input = """
+				?3.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Attempts to call a non-ident
+	void test53() throws PLPException {
+		String input = """
+				CALL 0.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Attempts to assign an ident to a statement
+	void test54() throws PLPException {
+		String input = """
+				x := !x.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
 }
