@@ -15,10 +15,132 @@ public class Parser implements IParser{
         this.lexer = lexer;
     }
     public ASTNode parse() throws PLPException {
-        while (!lexer.peek().equals(Kind.EOF)) {
-            return parseStmt();
+        return parseProgram();
+    }
+
+    public Program parseProgram() throws PLPException {
+        IToken first = lexer.peek();
+        Block block = parseBlock();
+        if (!lexer.peek().getKind().equals(Kind.DOT)) {
+            throw new SyntaxException("Missing . at the end of program.");
         }
-        return new ExpressionBooleanLit(new Token(Kind.EOF, new char[]{' '}, 1, 1));
+        // discard .
+        lexer.next();
+        return new Program(first, block);
+    }
+
+    public Block parseBlock() throws PLPException {
+        List<ConstDec> consts = new ArrayList<>();
+        List<VarDec> vars = new ArrayList<>();
+        List<ProcDec> procedures = new ArrayList<>();
+        IToken first = lexer.peek();
+        while (lexer.peek().getKind().equals(Kind.KW_CONST)) {
+            consts.addAll(parseConstDec());
+        }
+        while (lexer.peek().getKind().equals(Kind.KW_VAR)) {
+            vars.addAll(parseVarDec());
+        }
+        while (lexer.peek().getKind().equals(Kind.KW_PROCEDURE)) {
+            procedures.add(parseProcDec());
+        }
+        Statement stmt = parseStmt();
+        return new Block(first, consts, vars, procedures, stmt);
+    }
+
+    public List<ConstDec> parseConstDec() throws PLPException {
+        List<ConstDec> consts = new ArrayList<>();
+        // discard CONST
+        IToken first = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in const declaration.");
+        }
+        IToken ident = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.EQ)) {
+            throw new SyntaxException("Missing equal in const declaration.");
+        }
+        // discard =
+        lexer.next();
+        Expression constVal = parseConst();
+        consts.add(new ConstDec(first, ident, constVal));
+        while (lexer.peek().getKind().equals(Kind.COMMA)) {
+            // discard ,
+            lexer.next();
+            if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+                throw new SyntaxException("Identifier type required in variable declaration.");
+            }
+            IToken identNext = lexer.next();
+            if (!lexer.peek().getKind().equals(Kind.EQ)) {
+                throw new SyntaxException("Missing equal in const declaration.");
+            }
+            // discard =
+            lexer.next();
+            Expression constValNext = parseConst();
+            consts.add(new ConstDec(first, identNext, constValNext));
+        }
+        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+            throw new SyntaxException("Missing semicolon in const declaration.");
+        }
+        // discard ;
+        lexer.next();
+        return consts;
+    }
+
+    public List<VarDec> parseVarDec() throws PLPException {
+        List<VarDec> vars = new ArrayList<>();
+        // discard VAR
+        IToken first = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in variable declaration.");
+        }
+        vars.add(new VarDec(lexer.peek(), lexer.next()));
+        while (lexer.peek().getKind().equals(Kind.COMMA)) {
+            // discard ,
+            lexer.next();
+            if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+                throw new SyntaxException("Identifier type required in variable declaration.");
+            }
+            vars.add(new VarDec(lexer.peek(), lexer.next()));
+        }
+        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+            throw new SyntaxException("Missing semicolon in variable declaration.");
+        }
+        // discard ;
+        lexer.next();
+        return vars;
+    }
+
+    public ProcDec parseProcDec() throws PLPException {
+        // discard PROCEDURE
+        IToken first = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.IDENT)) {
+            throw new SyntaxException("Identifier type required in procedure declaration.");
+        }
+        IToken ident = lexer.next();
+        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+            throw new SyntaxException("Missing semicolon in procedure declaration.");
+        }
+        // discard ;
+        lexer.next();
+        Block block = parseBlock();
+        if (!lexer.peek().getKind().equals(Kind.SEMI)) {
+            throw new SyntaxException("Missing semicolon in procedure declaration.");
+        }
+        // discard ;
+        lexer.next();
+        return new ProcDec(first, ident, block);
+    }
+
+    // TODO does our language allow more than 1 statement
+    public StatementBlock parseStmtBlock() throws PLPException {
+        List<Statement> stmts = new ArrayList<>();
+        IToken first = lexer.peek();
+        while (lexer.peek().getKind().equals(Kind.IDENT) || lexer.peek().getKind().equals(Kind.KW_CALL)
+                || lexer.peek().getKind().equals(Kind.QUESTION) || lexer.peek().getKind().equals(Kind.BANG)
+                || lexer.peek().getKind().equals(Kind.KW_BEGIN) || lexer.peek().getKind().equals(Kind.KW_IF)
+                || lexer.peek().getKind().equals(Kind.KW_WHILE)) {
+            stmts.add(parseStmt());
+        }
+        return new StatementBlock(first, stmts);
     }
 
     public Statement parseStmt() throws PLPException {
@@ -192,8 +314,9 @@ public class Parser implements IParser{
                 return parseString();
             case NUM_LIT:
                 return parseNumber();
+            default:
+                throw new SyntaxException("Invalid constant");
         }
-        return new ExpressionBooleanLit(new Token(Kind.EOF, new char[]{' '}, 1, 1));
     }
 
     public Expression parseParen() throws PLPException {
@@ -209,11 +332,11 @@ public class Parser implements IParser{
 
     public ExpressionIdent parseIdent() throws PLPException {
         ExpressionIdent exp = new ExpressionIdent(lexer.peek());
-        exp.setDec(parseVarDec());
+        exp.setDec(parseVarDecSingle());
         return exp;
     }
 
-    public VarDec parseVarDec() throws PLPException {
+    public VarDec parseVarDecSingle() throws PLPException {
         return new VarDec(lexer.peek(), lexer.next());
     }
 
