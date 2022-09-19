@@ -23,7 +23,7 @@ public class Parser implements IParser{
         return parseProgram();
     }
 
-    public Program parseProgram() throws PLPException {
+    public Program parseProgram() throws SyntaxException {
         IToken first = peek();
         Block block = parseBlock();
         match(Kind.DOT);
@@ -33,7 +33,7 @@ public class Parser implements IParser{
         return new Program(first, block);
     }
 
-    public Block parseBlock() throws PLPException {
+    public Block parseBlock() throws SyntaxException {
         List<ConstDec> consts = new ArrayList<>();
         List<VarDec> vars = new ArrayList<>();
         List<ProcDec> procedures = new ArrayList<>();
@@ -51,7 +51,7 @@ public class Parser implements IParser{
         return new Block(first, consts, vars, procedures, stmt);
     }
 
-    public List<ConstDec> parseConstDec() throws PLPException {
+    public List<ConstDec> parseConstDec() throws SyntaxException {
         List<ConstDec> consts = new ArrayList<>();
         // discard CONST
         IToken first = match(Kind.KW_CONST);
@@ -70,7 +70,7 @@ public class Parser implements IParser{
         return consts;
     }
 
-    public List<VarDec> parseVarDec() throws PLPException {
+    public List<VarDec> parseVarDec() throws SyntaxException {
         List<VarDec> vars = new ArrayList<>();
         IToken first = match(Kind.KW_VAR);
         vars.add(new VarDec(first, match(Kind.IDENT)));
@@ -82,7 +82,7 @@ public class Parser implements IParser{
         return vars;
     }
 
-    public ProcDec parseProcDec() throws PLPException {
+    public ProcDec parseProcDec() throws SyntaxException {
         IToken first = match(Kind.KW_PROCEDURE);
         IToken ident = match(Kind.IDENT);
         match(Kind.SEMI);
@@ -91,7 +91,7 @@ public class Parser implements IParser{
         return new ProcDec(first, ident, block);
     }
 
-    public Statement parseStmt() throws PLPException {
+    public Statement parseStmt() throws SyntaxException {
         switch (peek().getKind()) {
             case IDENT:
                 return parseAssignStmt();
@@ -114,7 +114,7 @@ public class Parser implements IParser{
         }
     }
 
-    public StatementAssign parseAssignStmt() throws PLPException {
+    public StatementAssign parseAssignStmt() throws SyntaxException {
         IToken first = peek();
         Ident ident = parseIdent();
         match(Kind.ASSIGN);
@@ -122,25 +122,25 @@ public class Parser implements IParser{
         return new StatementAssign(first, ident, expr);
     }
 
-    public StatementCall parseCallStmt() throws PLPException {
+    public StatementCall parseCallStmt() throws SyntaxException {
         IToken first = match(Kind.KW_CALL);
         Ident ident = parseIdent();
         return new StatementCall(first, ident);
     }
 
-    public StatementInput parseInputStmt() throws PLPException {
+    public StatementInput parseInputStmt() throws SyntaxException {
         IToken first = match(Kind.QUESTION);
         Ident ident = parseIdent();
         return new StatementInput(first, ident);
     }
 
-    public StatementOutput parseOutputStmt() throws PLPException {
+    public StatementOutput parseOutputStmt() throws SyntaxException {
         IToken first = match(Kind.BANG);
         Expression expr = parseExpr();
         return new StatementOutput(first, expr);
     }
 
-    public StatementBlock parseBlockStmt() throws PLPException {
+    public StatementBlock parseBlockStmt() throws SyntaxException {
         IToken first = match(Kind.KW_BEGIN);
         List<Statement> stmts = new ArrayList<>();
         stmts.add(parseStmt());
@@ -152,7 +152,7 @@ public class Parser implements IParser{
         return new StatementBlock(first, stmts);
     }
 
-    public StatementIf parseIfStmt() throws PLPException {
+    public StatementIf parseIfStmt() throws SyntaxException {
         IToken first = match(Kind.KW_IF);
         Expression expr = parseExpr();
         match(Kind.KW_THEN);
@@ -160,7 +160,7 @@ public class Parser implements IParser{
         return new StatementIf(first, expr, stmt);
     }
 
-    public StatementWhile parseWhileStmt() throws PLPException {
+    public StatementWhile parseWhileStmt() throws SyntaxException {
         IToken first = match(Kind.KW_WHILE);
         Expression expr = parseExpr();
         match(Kind.KW_DO);
@@ -168,11 +168,11 @@ public class Parser implements IParser{
         return new StatementWhile(first, expr, stmt);
     }
 
-    public StatementEmpty parseEmptyStmt() throws PLPException {
+    public StatementEmpty parseEmptyStmt() throws SyntaxException{
         return new StatementEmpty(peek());
     }
 
-    public Expression parseExpr() throws PLPException {
+    public Expression parseExpr() throws SyntaxException {
         IToken first = peek();
         Expression e0 = parseAdditiveExpr();
         if (isKind(Kind.LT) || isKind(Kind.GT) || isKind(Kind.EQ) || isKind(Kind.NEQ)
@@ -184,7 +184,7 @@ public class Parser implements IParser{
         return e0;
     }
 
-    public Expression parseAdditiveExpr() throws PLPException {
+    public Expression parseAdditiveExpr() throws SyntaxException {
         IToken first = peek();
         Expression e0 = parseMultiplicativeExpr();
         Expression e1;
@@ -196,7 +196,7 @@ public class Parser implements IParser{
         return e0;
     }
 
-    public Expression parseMultiplicativeExpr() throws PLPException {
+    public Expression parseMultiplicativeExpr() throws SyntaxException {
         IToken first = peek();
         Expression e0 = parsePrimaryExpr();
         Expression e1;
@@ -208,7 +208,7 @@ public class Parser implements IParser{
         return e0;
     }
 
-    public Expression parsePrimaryExpr() throws PLPException {
+    public Expression parsePrimaryExpr() throws SyntaxException {
         switch (peek().getKind()) {
             case IDENT:
                 return parseIdentExpr();
@@ -225,7 +225,7 @@ public class Parser implements IParser{
         }
     }
 
-    public Expression parseConstExpr() throws PLPException {
+    public Expression parseConstExpr() throws SyntaxException {
         switch (peek().getKind()) {
             case BOOLEAN_LIT:
                 return parseBooleanExpr();
@@ -238,58 +238,60 @@ public class Parser implements IParser{
         }
     }
 
-    public Expression parseParenExpr() throws PLPException {
+    public Expression parseParenExpr() throws SyntaxException {
         match(Kind.LPAREN);
         Expression expr = parseExpr();
         match(Kind.RPAREN);
         return expr;
     }
 
-    public ExpressionIdent parseIdentExpr() throws PLPException {
+    public ExpressionIdent parseIdentExpr() throws SyntaxException {
         ExpressionIdent exp = new ExpressionIdent(match(Kind.IDENT));
         return exp;
     }
 
-    public ExpressionBooleanLit parseBooleanExpr() throws PLPException {
+    public ExpressionBooleanLit parseBooleanExpr() throws SyntaxException {
         return new ExpressionBooleanLit(match(Kind.BOOLEAN_LIT));
     }
 
-    public ExpressionNumLit parseNumberExpr() throws PLPException {
+    public ExpressionNumLit parseNumberExpr() throws SyntaxException {
         return new ExpressionNumLit(match(Kind.NUM_LIT));
     }
 
-    public ExpressionStringLit parseStringExpr() throws PLPException {
+    public ExpressionStringLit parseStringExpr() throws SyntaxException {
         return new ExpressionStringLit(match(Kind.STRING_LIT));
     }
 
-    public Ident parseIdent() throws PLPException {
+    public Ident parseIdent() throws SyntaxException {
         return new Ident(match(Kind.IDENT));
     }
 
-    private boolean isKind(Kind kind) throws PLPException {
+    private boolean isKind(Kind kind) throws SyntaxException {
         if (peek().getKind().equals(kind))
             return true;
         return false;
     }
 
-    private IToken consume() throws PLPException {
+    private IToken consume() {
         IToken next = tokens.get(index);
         index++;
         return next;
     }
 
-    private IToken match(Kind kind) throws PLPException {
-        if (!isKind(kind))
+    private IToken match(Kind kind) throws SyntaxException {
+        if (index >= tokens.size()) {
+            throw new SyntaxException("Invalid end of statement.");
+        }
+        else if (!isKind(kind))
             throw new SyntaxException("Type " + kind + " required.");
         return consume();
     }
 
-    private IToken peek() throws PLPException {
+    private IToken peek() throws SyntaxException {
+        if (index >= tokens.size()) {
+            throw new SyntaxException("Invalid end of statement.");
+        }
         return tokens.get(index);
-    }
-
-    private IToken peek(int ahead) {
-        return tokens.get(index + ahead);
     }
 
 }

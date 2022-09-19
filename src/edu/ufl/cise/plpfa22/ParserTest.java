@@ -691,4 +691,138 @@ class ParserTest {
 		});
 	}
 
+	@Test
+	// ExpressionBooleanLit
+	void test17() throws PLPException {
+		String input = """
+				!TRUE.""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionBooleanLit.class));
+		IToken token = expr.firstToken;
+		assertEquals(true, token.getBooleanValue());
+	}
+
+	@Test
+	// ExpressionStringLit
+	void test18() throws PLPException {
+		String input = """
+				!"String\\n".""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionStringLit.class));
+		IToken token = expr.firstToken;
+		assertEquals("String\n", token.getStringValue());
+	}
+
+	@Test
+	// ExpressionNumLit
+	void test19() throws PLPException {
+		String input = """
+				!10.""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionNumLit.class));
+		IToken token = expr.firstToken;
+		assertEquals(10, token.getIntValue());
+	}
+
+	@Test
+	// ExpressionIdent
+	void test20() throws PLPException {
+		String input = """
+				!Ident.""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionIdent.class));
+		IToken token = expr.firstToken;
+		assertEquals("Ident", String.valueOf(token.getText()));
+	}
+
+	@Test
+	// Expression with Parentheses
+	void test21() throws PLPException {
+		String input = """
+				!(simple_expr).""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionIdent.class));
+		IToken token = expr.firstToken;
+		assertEquals("simple_expr", String.valueOf(token.getText()));
+	}
+
+	@Test
+	// Missing Right Parenthesis
+	void test22() throws PLPException {
+		String input = """
+				!(missing_paren.
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+		// Missing Left Parenthesis
+	void test23() throws PLPException {
+		String input = """
+				!missing_paren)
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
+	@Test
+	// Multiplicative Expression
+	void test24() throws PLPException {
+		String input = """
+				!1 - FALSE.""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		Statement stmt = block.statement;
+		assertThat("", stmt, instanceOf(StatementOutput.class));
+		Expression expr = ((StatementOutput) stmt).expression;
+		assertThat("", expr, instanceOf(ExpressionBinary.class));
+		IToken first = ((ExpressionBinary)expr).firstToken;
+		Expression e0 = ((ExpressionBinary)expr).e0;
+		IToken op = ((ExpressionBinary)expr).op;
+		Expression e1 = ((ExpressionBinary)expr).e1;
+		assertEquals(1, first.getIntValue());
+		assertThat(e0, instanceOf(ExpressionNumLit.class));
+		assertEquals(1, e0.firstToken.getIntValue());
+		assertEquals("-", String.valueOf(op.getText()));
+		assertThat(e1, instanceOf(ExpressionBooleanLit.class));
+		assertEquals(false, e1.firstToken.getBooleanValue());
+	}
+
+	@Test
+	// Missing second expression
+	void test25() throws PLPException {
+		String input = """
+				!5+
+				""";
+		Exception ex = assertThrows(SyntaxException.class, () -> {
+			ASTNode ast = getAST(input);
+		});
+		System.out.println(ex.getMessage());
+	}
+
 }
