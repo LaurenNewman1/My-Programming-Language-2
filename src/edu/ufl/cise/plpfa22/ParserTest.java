@@ -678,4 +678,17 @@ class ParserTest {
 		});
 	}
 
+	@Test
+//The error in this example should be found by the Lexer
+	void test16() throws PLPException {
+		String input = """
+				.
+				.
+				""";
+		assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			ASTNode ast = getAST(input);
+		});
+	}
+
 }

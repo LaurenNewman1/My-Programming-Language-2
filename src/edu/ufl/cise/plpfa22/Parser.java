@@ -8,11 +8,18 @@ import java.util.List;
 public class Parser implements IParser{
 
     private ILexer lexer;
+    private List<IToken> tokens;
+    private int index;
 
     public Parser(ILexer lexer) {
         this.lexer = lexer;
+        this.tokens = new ArrayList<>();
+        this.index = 0;
     }
     public ASTNode parse() throws PLPException {
+        // lex
+        while (!lexer.peek().getKind().equals(Kind.EOF))
+            tokens.add(lexer.next());
         return parseProgram();
     }
 
@@ -20,6 +27,9 @@ public class Parser implements IParser{
         IToken first = peek();
         Block block = parseBlock();
         match(Kind.DOT);
+        if (index < tokens.size()) {
+            throw new SyntaxException("Program cannot continue after dot.");
+        }
         return new Program(first, block);
     }
 
@@ -98,8 +108,6 @@ public class Parser implements IParser{
             case KW_WHILE:
                 return parseWhileStmt();
             case DOT:
-                return new StatementEmpty(peek());
-            case EOF:
                 return parseEmptyStmt();
             default:
                 throw new SyntaxException("Invalid statement");
@@ -161,7 +169,7 @@ public class Parser implements IParser{
     }
 
     public StatementEmpty parseEmptyStmt() throws PLPException {
-        return new StatementEmpty(match(Kind.EOF));
+        return new StatementEmpty(peek());
     }
 
     public Expression parseExpr() throws PLPException {
@@ -265,7 +273,9 @@ public class Parser implements IParser{
     }
 
     private IToken consume() throws PLPException {
-        return lexer.next();
+        IToken next = tokens.get(index);
+        index++;
+        return next;
     }
 
     private IToken match(Kind kind) throws PLPException {
@@ -275,7 +285,11 @@ public class Parser implements IParser{
     }
 
     private IToken peek() throws PLPException {
-        return lexer.peek();
+        return tokens.get(index);
+    }
+
+    private IToken peek(int ahead) {
+        return tokens.get(index + ahead);
     }
 
 }
