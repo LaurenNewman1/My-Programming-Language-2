@@ -58,16 +58,24 @@ public class Parser implements IParser{
         IToken ident = match(Kind.IDENT);
         match(Kind.EQ);
         Expression constVal = parseConstExpr();
-        consts.add(new ConstDec(first, ident, constVal));
+        Object constObj = parseObject(constVal);
+        consts.add(new ConstDec(first, ident, constObj));
         while (isKind(Kind.COMMA)) {
             match(Kind.COMMA);
             IToken identNext = match(Kind.IDENT);
             match(Kind.EQ);
             Expression constValNext = parseConstExpr();
-            consts.add(new ConstDec(first, identNext, constValNext));
+            Object constObjNext = parseObject(constValNext);
+            consts.add(new ConstDec(first, identNext, constObjNext));
         }
         match(Kind.SEMI);
         return consts;
+    }
+
+    public Object parseObject(Expression expr) throws SyntaxException {
+        return isKind(expr.getFirstToken(), Kind.NUM_LIT) ? expr.getFirstToken().getIntValue()
+                : isKind(expr.getFirstToken(), Kind.STRING_LIT)? expr.getFirstToken().getStringValue()
+                : expr.getFirstToken().getBooleanValue();
     }
 
     public List<VarDec> parseVarDec() throws SyntaxException {
@@ -270,6 +278,12 @@ public class Parser implements IParser{
 
     private boolean isKind(Kind kind) throws SyntaxException {
         if (peek().getKind().equals(kind))
+            return true;
+        return false;
+    }
+
+    private boolean isKind(IToken token, Kind kind) throws SyntaxException {
+        if (token.getKind().equals(kind))
             return true;
         return false;
     }
