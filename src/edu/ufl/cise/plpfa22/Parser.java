@@ -115,12 +115,8 @@ public class Parser implements IParser{
                 return parseIfStmt();
             case KW_WHILE:
                 return parseWhileStmt();
-            case DOT:
-                return parseEmptyStmt();
-            case SEMI:
-                return parseEmptyStmt();
             default:
-                throw new SyntaxException("Invalid statement");
+                return parseEmptyStmt();
         }
     }
 
