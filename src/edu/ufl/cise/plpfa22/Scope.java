@@ -23,15 +23,25 @@ public class Scope {
         this.procs = new ArrayList<>();
     }
 
+    // Copy constructor
+    public Scope(Scope scope) {
+        this.id = scope.id;
+        this.nest = scope.nest;
+        this.consts = new ArrayList<>(scope.consts);
+        this.vars = new ArrayList<>(scope.vars);
+        this.procs = new ArrayList<>(scope.procs);
+    }
+
     public Declaration lookup(IToken ident) {
-        for (ConstDec con : consts)
-            if (con.ident.equals(ident))
+        for (ConstDec con : consts) {
+            if (String.copyValueOf(con.ident.getText()).equals(String.copyValueOf(ident.getText())))
                 return con;
+        }
         for (VarDec var : vars)
-            if (var.ident.equals(ident))
+            if (String.copyValueOf(var.ident.getText()).equals(String.copyValueOf(ident.getText())))
                 return var;
         for (ProcDec proc : procs)
-            if (proc.ident.equals(ident))
+            if (String.copyValueOf(proc.ident.getText()).equals(String.copyValueOf(ident.getText())))
                 return proc;
         return null;
     }

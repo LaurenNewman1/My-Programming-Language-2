@@ -76,10 +76,8 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
-        enterScope();
         for (Statement statement : statementBlock.statements)
             visitStatement(statement, arg);
-        closeScope();
         return null;
     }
 
@@ -125,7 +123,10 @@ public class Visitor implements ASTVisitor {
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
         expressionIdent.setNest(nest);
-        // TODO set dec
+        Declaration dec = lookup(expressionIdent.firstToken);
+        if (dec == null)
+            throw new ScopeException("Could not find declaration.");
+        expressionIdent.setDec(dec);
         return null;
     }
 
@@ -164,7 +165,10 @@ public class Visitor implements ASTVisitor {
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
         ident.setNest(nest);
-        // TODO set dec
+        Declaration dec = lookup(ident.firstToken);
+        if (dec == null)
+            throw new ScopeException("Could not find declaration.");
+        ident.setDec(dec);
         return null;
     }
 
@@ -180,11 +184,16 @@ public class Visitor implements ASTVisitor {
     }
 
     public Declaration lookup(IToken ident) {
+        Stack<Scope> temp = new Stack<>();
         Declaration dec = null;
-        Iterator iter = scopeStack.iterator();
-        while (iter.hasNext() && dec.equals(null)) {
-            dec = ((Scope)iter.next()).lookup(ident);
+        while (!scopeStack.empty() && dec == null) {
+            Scope next = scopeStack.pop();
+            temp.push(next);
+            dec = next.lookup(ident);
         }
+        // fix scope stack
+        while (!temp.empty())
+            scopeStack.push(temp.pop());
         return dec;
     }
 }
