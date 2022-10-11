@@ -4,7 +4,11 @@ import edu.ufl.cise.plpfa22.ast.*;
 
 public class Visitor implements ASTVisitor {
 
-    public Visitor() {}
+    int scope;
+
+    public Visitor() {
+        scope = 0;
+    }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
         return visitBlock(program.block, arg);
@@ -18,113 +22,129 @@ public class Visitor implements ASTVisitor {
         for (ProcDec proc : block.procedureDecs)
             visitProcedure(proc, arg);
         visitStatement(block.statement, arg);
-        throw new PLPException();
+        return null;
     }
 
     public Object visitStatement(Statement statement, Object arg) throws PLPException {
         if (statement instanceof StatementAssign)
-            return visitStatementAssign((StatementAssign) statement, arg);
+            visitStatementAssign((StatementAssign) statement, arg);
         else if (statement instanceof StatementCall)
-            return visitStatementCall((StatementCall) statement, arg);
+            visitStatementCall((StatementCall) statement, arg);
         else if (statement instanceof StatementInput)
-            return visitStatementInput((StatementInput) statement, arg);
+            visitStatementInput((StatementInput) statement, arg);
         else if (statement instanceof StatementOutput)
-            return visitStatementOutput((StatementOutput) statement, arg);
+            visitStatementOutput((StatementOutput) statement, arg);
         else if (statement instanceof StatementBlock)
-            return visitStatementBlock((StatementBlock) statement, arg);
+            visitStatementBlock((StatementBlock) statement, arg);
         else if (statement instanceof StatementIf)
-            return visitStatementIf((StatementIf) statement, arg);
+            visitStatementIf((StatementIf) statement, arg);
         else if (statement instanceof StatementWhile)
-            return visitStatementWhile((StatementWhile) statement, arg);
-        return visitStatementEmpty((StatementEmpty) statement, arg);
+            visitStatementWhile((StatementWhile) statement, arg);
+        else
+            visitStatementEmpty((StatementEmpty) statement, arg);
+        return null;
     }
 
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         visitIdent(statementAssign.ident, arg);
         visitExpression(statementAssign.expression, arg);
-        throw new PLPException();
+        return null;
     }
 
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-        return visitIdent(statementCall.ident, arg);
+        visitIdent(statementCall.ident, arg);
+        return null;
     }
 
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-        return visitIdent(statementInput.ident, arg);
+        visitIdent(statementInput.ident, arg);
+        return null;
     }
 
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
-        return visitExpression(statementOutput.expression, arg);
+        visitExpression(statementOutput.expression, arg);
+        return null;
     }
 
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
         for (Statement statement : statementBlock.statements)
             visitStatement(statement, arg);
-        throw new PLPException();
+        return null;
     }
 
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
         visitExpression(statementIf.expression, arg);
         visitStatement(statementIf.statement, arg);
-        throw new PLPException();
+        return null;
     }
 
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
         visitExpression(statementWhile.expression, arg);
         visitStatement(statementWhile.statement, arg);
-        throw new PLPException();
+        return null;
     }
 
     public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
-        throw new PLPException();
+        return null;
     }
 
     public Object visitExpression(Expression expression, Object arg) throws PLPException {
         if (expression instanceof ExpressionBinary)
-            return visitExpressionBinary((ExpressionBinary) expression, arg);
+            visitExpressionBinary((ExpressionBinary) expression, arg);
         else if (expression instanceof ExpressionIdent)
-            return visitExpressionIdent((ExpressionIdent) expression, arg);
+            visitExpressionIdent((ExpressionIdent) expression, arg);
         else if (expression instanceof ExpressionNumLit)
-            return visitExpressionNumLit((ExpressionNumLit) expression, arg);
+            visitExpressionNumLit((ExpressionNumLit) expression, arg);
         else if (expression instanceof ExpressionStringLit)
-            return visitExpressionStringLit((ExpressionStringLit) expression, arg);
+            visitExpressionStringLit((ExpressionStringLit) expression, arg);
         else
-            return visitExpressionBooleanLit((ExpressionBooleanLit) expression, arg);
+            visitExpressionBooleanLit((ExpressionBooleanLit) expression, arg);
+        return null;
     }
 
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
-        throw new PLPException();
+        visitExpression(expressionBinary.e0, arg);
+        visitExpression(expressionBinary.e1, arg);
+        return null;
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        throw new PLPException();
+        expressionIdent.setNest(scope);
+        // TODO set dec
+        return null;
     }
 
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
-        throw new PLPException();
+        return null;
     }
 
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
-        throw new PLPException();
+        return null;
     }
 
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
-        throw new PLPException();
+        return null;
     }
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        throw new PLPException();
+        procDec.setNest(scope);
+        visitBlock(procDec.block, arg);
+        return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        throw new PLPException();
+        constDec.setNest(scope);
+        return null;
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        throw new PLPException();
+        varDec.setNest(scope);
+        return null;
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
-        throw new PLPException();
+        ident.setNest(scope);
+        // TODO set dec
+        return null;
     }
 }

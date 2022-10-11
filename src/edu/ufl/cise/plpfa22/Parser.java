@@ -58,14 +58,14 @@ public class Parser implements IParser{
         IToken ident = match(Kind.IDENT);
         match(Kind.EQ);
         Expression constVal = parseConstExpr();
-        Object constObj = parseObject(constVal);
+        Object constObj = toObject(constVal);
         consts.add(new ConstDec(first, ident, constObj));
         while (isKind(Kind.COMMA)) {
             match(Kind.COMMA);
             IToken identNext = match(Kind.IDENT);
             match(Kind.EQ);
             Expression constValNext = parseConstExpr();
-            Object constObjNext = parseObject(constValNext);
+            Object constObjNext = toObject(constValNext);
             consts.add(new ConstDec(first, identNext, constObjNext));
         }
         match(Kind.SEMI);
@@ -306,6 +306,15 @@ public class Parser implements IParser{
             throw new SyntaxException("Invalid end of statement.");
         }
         return tokens.get(index);
+    }
+
+    private Object toObject(Expression expr) throws SyntaxException {
+        if (expr instanceof ExpressionNumLit)
+            return expr.firstToken.getIntValue();
+        else if (expr instanceof ExpressionStringLit)
+            return expr.firstToken.getStringValue();
+        else
+            return expr.firstToken.getBooleanValue();
     }
 
 }
