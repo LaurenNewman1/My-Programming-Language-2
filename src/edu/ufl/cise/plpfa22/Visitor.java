@@ -76,20 +76,26 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
+        enterScope();
         for (Statement statement : statementBlock.statements)
             visitStatement(statement, arg);
+        closeScope();
         return null;
     }
 
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
         visitExpression(statementIf.expression, arg);
+        enterScope();
         visitStatement(statementIf.statement, arg);
+        closeScope();
         return null;
     }
 
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
         visitExpression(statementWhile.expression, arg);
+        enterScope();
         visitStatement(statementWhile.statement, arg);
+        closeScope();
         return null;
     }
 
@@ -137,17 +143,22 @@ public class Visitor implements ASTVisitor {
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         procDec.setNest(nest);
+        scopeStack.peek().addProc(procDec);
+        enterScope();
         visitBlock(procDec.block, arg);
+        closeScope();
         return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
         constDec.setNest(nest);
+        scopeStack.peek().addConst(constDec);
         return null;
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
         varDec.setNest(nest);
+        scopeStack.peek().addVar(varDec);
         return null;
     }
 
@@ -158,9 +169,9 @@ public class Visitor implements ASTVisitor {
     }
 
     public void enterScope() {
-        scopeStack.push(new Scope(id, nest));
         id++;
         nest++;
+        scopeStack.push(new Scope(id, nest));
     }
 
     public void closeScope() {
