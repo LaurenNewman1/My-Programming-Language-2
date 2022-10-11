@@ -1427,4 +1427,75 @@ class ParserTest {
 		assertEquals("y", String.valueOf(((ExpressionBinary) v7).e1.getFirstToken().getText()));
 		assertEquals("x", String.valueOf(((ExpressionBinary) v7).e0.getFirstToken().getText()));
 	}
+
+	@Test
+	void failedTest14() throws PLPException {
+		String input = """
+			CONST a=3;
+			VAR x,y,z;
+			PROCEDURE p;
+			  VAR j;
+			  BEGIN
+				? x;
+				IF x = 0 THEN ! y ;
+			  END;
+			.
+			""";
+		ASTNode ast = getAST(input);
+		assertThat("", ast, instanceOf(Program.class));
+		Block v0 = ((Program) ast).block;
+		assertThat("", v0, instanceOf(Block.class));
+		List<ConstDec> v1 = ((Block) v0).constDecs;
+		assertEquals(1, v1.size());
+		List<VarDec> v2 = ((Block) v0).varDecs;
+		assertEquals(3, v2.size());
+		List<ProcDec> v3 = ((Block) v0).procedureDecs;
+		assertEquals(1, v3.size());
+		Block v4 = v3.get(0).block;
+		List<ConstDec> v5 = ((Block) v4).constDecs;
+		assertEquals(0, v5.size());
+		List<VarDec> v6 = ((Block) v4).varDecs;
+		assertEquals(1, v6.size());
+		Statement v7 = ((Block) v4).statement;
+		assertThat("", v7, instanceOf(StatementBlock.class));
+	}
+
+	@Test
+	void failedTest25() throws PLPException {
+		String input = """
+			PROCEDURE x;
+				 CALL x;
+			PROCEDURE y;
+				 !x;
+			PROCEDURE z;
+				 VAR y,z;
+			;
+			.
+			""";
+		ASTNode ast = getAST(input);
+		assertThat("", ast, instanceOf(Program.class));
+		Block v0 = ((Program) ast).block;
+		assertThat("", v0, instanceOf(Block.class));
+		List<ProcDec> v1 = ((Block) v0).procedureDecs;
+		assertEquals(3, v1.size());
+	}
+
+	@Test
+	void failedTest28() throws PLPException {
+		String input = """
+			PROCEDURE X;
+				 PROCEDURE Y;
+						 PROCEDURE Z;
+								 CALL XYZ;
+				 ;
+			;
+			.
+			""";
+		ASTNode ast = getAST(input);
+		assertThat("", ast, instanceOf(Program.class));
+		Block v0 = ((Program) ast).block;
+		assertThat("", v0, instanceOf(Block.class));
+		List<ProcDec> v1 = ((Block) v0).procedureDecs;
+		assertEquals(1, v1.size());
+	}
 }
