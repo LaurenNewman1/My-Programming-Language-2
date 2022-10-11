@@ -1,16 +1,25 @@
 package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.*;
+import edu.ufl.cise.plpfa22.Scope;
+
+import java.util.Iterator;
+import java.util.Stack;
 
 public class Visitor implements ASTVisitor {
 
-    int scope;
+    Stack<Scope> scopeStack;
+    int id;
+    int nest;
 
     public Visitor() {
-        scope = 0;
+        scopeStack = new Stack<>();
+        id = 0;
+        nest = 0;
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
+        scopeStack.push(new Scope(id, nest));
         return visitBlock(program.block, arg);
     }
 
@@ -109,7 +118,7 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        expressionIdent.setNest(scope);
+        expressionIdent.setNest(nest);
         // TODO set dec
         return null;
     }
@@ -127,24 +136,44 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        procDec.setNest(scope);
+        procDec.setNest(nest);
         visitBlock(procDec.block, arg);
         return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        constDec.setNest(scope);
+        constDec.setNest(nest);
         return null;
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        varDec.setNest(scope);
+        varDec.setNest(nest);
         return null;
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
-        ident.setNest(scope);
+        ident.setNest(nest);
         // TODO set dec
         return null;
+    }
+
+    public void enterScope() {
+        scopeStack.push(new Scope(id, nest));
+        id++;
+        nest++;
+    }
+
+    public void closeScope() {
+        scopeStack.pop();
+        nest--;
+    }
+
+    public Declaration lookup(IToken ident) {
+        Declaration dec = null;
+        Iterator iter = scopeStack.iterator();
+        while (iter.hasNext() && dec.equals(null)) {
+            dec = ((Scope)iter.next()).lookup(ident);
+        }
+        return dec;
     }
 }
