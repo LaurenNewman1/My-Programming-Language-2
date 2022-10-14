@@ -1,26 +1,27 @@
 package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.*;
-import edu.ufl.cise.plpfa22.Scope;
-
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class Visitor implements ASTVisitor {
-
-    Stack<Scope> scopeStack;
+    Hashtable<Integer, Declaration> symbolTable;
     int id;
     int nest;
+    boolean lastPass;
 
     public Visitor() {
-        scopeStack = new Stack<>();
         id = 0;
         nest = 0;
+        lastPass = false;
+        symbolTable = new Hashtable<>();
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
-        scopeStack.push(new Scope(id, nest));
-        return visitBlock(program.block, arg);
+        visitBlock(program.block, arg);
+        lastPass = true;
+        visitBlock(program.block, arg);
+        return null;
     }
 
     public Object visitBlock(Block block, Object arg) throws PLPException {
@@ -122,11 +123,13 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        expressionIdent.setNest(nest);
-        Declaration dec = lookup(expressionIdent.firstToken);
-        if (dec == null)
-            throw new ScopeException("Could not find declaration.");
-        expressionIdent.setDec(dec);
+        if (lastPass) {
+            expressionIdent.setNest(nest);
+            Declaration dec = lookup(expressionIdent.firstToken);
+            if (dec == null)
+                throw new ScopeException("Could not find declaration.");
+            expressionIdent.setDec(dec);
+        }
         return null;
     }
 
@@ -143,8 +146,10 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        procDec.setNest(nest);
-        scopeStack.peek().addProc(procDec);
+        if (!lastPass) {
+            procDec.setNest(nest);
+            newIdentifier(procDec);
+        }
         enterScope();
         visitBlock(procDec.block, arg);
         closeScope();
@@ -152,48 +157,70 @@ public class Visitor implements ASTVisitor {
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        constDec.setNest(nest);
-        scopeStack.peek().addConst(constDec);
+        if (!lastPass) {
+            constDec.setNest(nest);
+            newIdentifier(constDec);
+        }
         return null;
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        varDec.setNest(nest);
-        scopeStack.peek().addVar(varDec);
+        if (!lastPass) {
+            varDec.setNest(nest);
+            newIdentifier(varDec);
+        }
         return null;
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
-        ident.setNest(nest);
-        Declaration dec = lookup(ident.firstToken);
-        if (dec == null)
-            throw new ScopeException("Could not find declaration.");
-        ident.setDec(dec);
+        if (lastPass) {
+            ident.setNest(nest);
+            Declaration dec = lookup(ident.firstToken);
+            if (dec == null)
+                throw new ScopeException("Could not find declaration.");
+            ident.setDec(dec);
+        }
         return null;
     }
 
     public void enterScope() {
         id++;
         nest++;
-        scopeStack.push(new Scope(id, nest));
     }
 
     public void closeScope() {
-        scopeStack.pop();
         nest--;
     }
 
     public Declaration lookup(IToken ident) {
-        Stack<Scope> temp = new Stack<>();
-        Declaration dec = null;
-        while (!scopeStack.empty() && dec == null) {
-            Scope next = scopeStack.pop();
-            temp.push(next);
-            dec = next.lookup(ident);
+        for (Map.Entry entry : symbolTable.entrySet()) {
+            Declaration dec = (Declaration) entry.getValue();
+            String identStr = String.copyValueOf(ident.getText());
+            if (dec instanceof ConstDec) {
+                if (String.copyValueOf(((ConstDec)dec).ident.getText()).equals(identStr)) {
+                    if (dec.getNest() <= nest) {
+                        return dec;
+                    }
+                }
+            }
+            else if (dec instanceof VarDec) {
+                if (String.copyValueOf(((VarDec)dec).ident.getText()).equals(identStr)) {
+                    if (dec.getNest() <= nest) {
+                        return dec;
+                    }
+                }
+            }
+            else {
+                if (String.copyValueOf(((ProcDec)dec).ident.getText()).equals(identStr)) {
+                    return dec;
+                }
+            }
         }
-        // fix scope stack
-        while (!temp.empty())
-            scopeStack.push(temp.pop());
-        return dec;
+        return null;
+    }
+
+    public void newIdentifier(Declaration dec) {
+        symbolTable.put(id, dec);
+        id++;
     }
 }
