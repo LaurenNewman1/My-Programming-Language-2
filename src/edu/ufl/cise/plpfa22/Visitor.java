@@ -196,22 +196,8 @@ public class Visitor implements ASTVisitor {
         for (Map.Entry entry : symbolTable.entrySet()) {
             Declaration dec = (Declaration) entry.getValue();
             String identStr = String.copyValueOf(ident.getText());
-            if (dec instanceof ConstDec) {
-                if (String.copyValueOf(((ConstDec)dec).ident.getText()).equals(identStr)) {
-                    if (dec.getNest() <= nest) {
-                        return dec;
-                    }
-                }
-            }
-            else if (dec instanceof VarDec) {
-                if (String.copyValueOf(((VarDec)dec).ident.getText()).equals(identStr)) {
-                    if (dec.getNest() <= nest) {
-                        return dec;
-                    }
-                }
-            }
-            else {
-                if (String.copyValueOf(((ProcDec)dec).ident.getText()).equals(identStr)) {
+            if (getIdentText(dec).equals(identStr)) {
+                if (dec.getNest() <= nest || dec instanceof ProcDec) {
                     return dec;
                 }
             }
@@ -219,8 +205,24 @@ public class Visitor implements ASTVisitor {
         return null;
     }
 
-    public void newIdentifier(Declaration dec) {
+    public void newIdentifier(Declaration dec) throws PLPException {
+        for (Map.Entry entry : symbolTable.entrySet()) {
+            Declaration entryDec = (Declaration) entry.getValue();
+            if (getIdentText(entryDec).equals(getIdentText(dec))
+                && entryDec.getNest() == dec.getNest()) {
+                throw new ScopeException("Identifier already exists in same scope.");
+            }
+        }
         symbolTable.put(id, dec);
         id++;
+    }
+
+    public String getIdentText(Declaration dec) {
+        if (dec instanceof ConstDec)
+            return String.copyValueOf(((ConstDec)dec).ident.getText());
+        else if (dec instanceof VarDec)
+            return String.copyValueOf(((VarDec)dec).ident.getText());
+        else
+            return String.copyValueOf(((ProcDec)dec).ident.getText());
     }
 }
