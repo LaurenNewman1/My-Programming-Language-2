@@ -1,26 +1,25 @@
 package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.*;
-import java.util.Hashtable;
-import java.util.Map;
+
+import java.util.*;
 
 public class Visitor implements ASTVisitor {
-    Hashtable<Integer, Declaration> symbolTable;
-    int id;
-    int nest;
+    SymbolTable symbolTable;
     boolean lastPass;
 
     public Visitor() {
-        id = 0;
-        nest = 0;
         lastPass = false;
-        symbolTable = new Hashtable<>();
+        symbolTable = new SymbolTable();
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
+        symbolTable.init();
         visitBlock(program.block, arg);
         lastPass = true;
+        symbolTable.init();
         visitBlock(program.block, arg);
+        symbolTable.closeScope();
         return null;
     }
 
@@ -84,17 +83,13 @@ public class Visitor implements ASTVisitor {
 
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
         visitExpression(statementIf.expression, arg);
-        enterScope();
         visitStatement(statementIf.statement, arg);
-        closeScope();
         return null;
     }
 
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
         visitExpression(statementWhile.expression, arg);
-        enterScope();
         visitStatement(statementWhile.statement, arg);
-        closeScope();
         return null;
     }
 
@@ -124,8 +119,8 @@ public class Visitor implements ASTVisitor {
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
         if (lastPass) {
-            expressionIdent.setNest(nest);
-            Declaration dec = lookup(expressionIdent.firstToken);
+            expressionIdent.setNest(symbolTable.nest);
+            Declaration dec = symbolTable.lookup(expressionIdent.firstToken);
             if (dec == null)
                 throw new ScopeException("Could not find declaration.");
             expressionIdent.setDec(dec);
@@ -147,82 +142,36 @@ public class Visitor implements ASTVisitor {
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         if (!lastPass) {
-            procDec.setNest(nest);
-            newIdentifier(procDec);
+            symbolTable.newIdentifier(procDec);
         }
-        enterScope();
+        symbolTable.enterScope();
         visitBlock(procDec.block, arg);
-        closeScope();
+        symbolTable.closeScope();
         return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
         if (!lastPass) {
-            constDec.setNest(nest);
-            newIdentifier(constDec);
+            symbolTable.newIdentifier(constDec);
         }
         return null;
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
         if (!lastPass) {
-            varDec.setNest(nest);
-            newIdentifier(varDec);
+            symbolTable.newIdentifier(varDec);
         }
         return null;
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
         if (lastPass) {
-            ident.setNest(nest);
-            Declaration dec = lookup(ident.firstToken);
+            ident.setNest(symbolTable.nest);
+            Declaration dec = symbolTable.lookup(ident.firstToken);
             if (dec == null)
                 throw new ScopeException("Could not find declaration.");
             ident.setDec(dec);
         }
         return null;
-    }
-
-    public void enterScope() {
-        id++;
-        nest++;
-    }
-
-    public void closeScope() {
-        nest--;
-    }
-
-    public Declaration lookup(IToken ident) {
-        for (Map.Entry entry : symbolTable.entrySet()) {
-            Declaration dec = (Declaration) entry.getValue();
-            String identStr = String.copyValueOf(ident.getText());
-            if (getIdentText(dec).equals(identStr)) {
-                if (dec.getNest() <= nest || dec instanceof ProcDec) {
-                    return dec;
-                }
-            }
-        }
-        return null;
-    }
-
-    public void newIdentifier(Declaration dec) throws PLPException {
-        for (Map.Entry entry : symbolTable.entrySet()) {
-            Declaration entryDec = (Declaration) entry.getValue();
-            if (getIdentText(entryDec).equals(getIdentText(dec))
-                && entryDec.getNest() == dec.getNest()) {
-                throw new ScopeException("Identifier already exists in same scope.");
-            }
-        }
-        symbolTable.put(id, dec);
-        id++;
-    }
-
-    public String getIdentText(Declaration dec) {
-        if (dec instanceof ConstDec)
-            return String.copyValueOf(((ConstDec)dec).ident.getText());
-        else if (dec instanceof VarDec)
-            return String.copyValueOf(((VarDec)dec).ident.getText());
-        else
-            return String.copyValueOf(((ProcDec)dec).ident.getText());
     }
 }
