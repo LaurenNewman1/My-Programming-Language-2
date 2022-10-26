@@ -140,19 +140,21 @@ public class TypeVisitor implements ASTVisitor {
         IToken op = expressionBinary.op;
         // PLUS
         if (isKind(op, IToken.Kind.PLUS)) {
-            if (!lastPass && checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
                 || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
-                expressionBinary.setType(expressionBinary.e0.getType());
+                if (!lastPass)
+                    expressionBinary.setType(expressionBinary.e0.getType());
             }
             else if (lastPass) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
         // MINUS, DIV, MOD
-        else if (!lastPass && (isKind(op, IToken.Kind.MINUS) || isKind(op, IToken.Kind.DIV)
-                || isKind(op, IToken.Kind.MOD))) {
+        else if (isKind(op, IToken.Kind.MINUS) || isKind(op, IToken.Kind.DIV)
+                || isKind(op, IToken.Kind.MOD)) {
             if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
-                expressionBinary.setType(Type.NUMBER);
+                if (!lastPass)
+                    expressionBinary.setType(Type.NUMBER);
             }
             else if (lastPass){
                 throw new TypeCheckException("Types are not compatible");
@@ -160,10 +162,11 @@ public class TypeVisitor implements ASTVisitor {
         }
         // TIMES
         else if (isKind(op, IToken.Kind.TIMES)) {
-            if (!lastPass && checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() == Type.NUMBER
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() == Type.NUMBER
                     && expressionBinary.e1.getType() == Type.NUMBER && expressionBinary.e0.getType() == Type.BOOLEAN
                     && expressionBinary.e1.getType() == Type.BOOLEAN) {
-                expressionBinary.setType(expressionBinary.e0.getType());
+                if (!lastPass)
+                    expressionBinary.setType(expressionBinary.e0.getType());
             }
             else if (lastPass){
                 throw new TypeCheckException("Types are not compatible");
@@ -171,9 +174,10 @@ public class TypeVisitor implements ASTVisitor {
         }
         // EQ, NEQ, LT, LE, GT, GE
         else {
-            if (!lastPass && checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
                     || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
-                expressionBinary.setType(Type.BOOLEAN);
+                if (!lastPass)
+                    expressionBinary.setType(Type.BOOLEAN);
             }
             else if (lastPass){
                 throw new TypeCheckException("Types are not compatible");
@@ -183,9 +187,8 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        if (lastPass && expressionIdent.getType() != expressionIdent.getDec().getType()) {
-            throw new TypeCheckException("Expression ident type should be equal to dec type");
-        }
+        if (!lastPass)
+            expressionIdent.setType(expressionIdent.getDec().getType());
         return null;
     }
 
