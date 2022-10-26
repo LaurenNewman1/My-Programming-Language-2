@@ -175,9 +175,8 @@ public class TypeVisitor implements ASTVisitor {
         }
         // TIMES
         else if (isKind(op, IToken.Kind.TIMES)) {
-            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() == Type.NUMBER
-                    && expressionBinary.e1.getType() == Type.NUMBER && expressionBinary.e0.getType() == Type.BOOLEAN
-                    && expressionBinary.e1.getType() == Type.BOOLEAN) {
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
+                    || expressionBinary.e0.getType() == Type.BOOLEAN)) {
                 if (!lastPass)
                     expressionBinary.setType(expressionBinary.e0.getType());
             }
