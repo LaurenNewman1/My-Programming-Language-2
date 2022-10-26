@@ -58,7 +58,8 @@ public class TypeVisitor implements ASTVisitor {
         }
         // If it does, make sure compatible
         else if (lastPass || statementAssign.ident.getDec().getType() != null){
-            if (!checkCompat(statementAssign.ident, statementAssign.expression)) {
+            if (!checkCompat(statementAssign.ident, statementAssign.expression)
+                || statementAssign.ident.getDec() instanceof ConstDec) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
