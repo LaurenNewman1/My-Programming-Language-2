@@ -150,6 +150,7 @@ public class TypeVisitor implements ASTVisitor {
         visitExpression(expressionBinary.e0, arg);
         visitExpression(expressionBinary.e1, arg);
         IToken op = expressionBinary.op;
+        handleImplicit(expressionBinary.e0, expressionBinary.e1);
         // PLUS
         if (isKind(op, IToken.Kind.PLUS)) {
             if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
@@ -275,5 +276,14 @@ public class TypeVisitor implements ASTVisitor {
             return true;
         }
         return false;
+    }
+
+    public void handleImplicit(Expression a, Expression b) {
+        if (a.getType() == null && a instanceof ExpressionIdent && b.getType() != null) {
+            a.setType(b.getType());
+        }
+        else if (b.getType() == null && b instanceof ExpressionIdent && a.getType() != null) {
+            b.setType(a.getType());
+        }
     }
 }
