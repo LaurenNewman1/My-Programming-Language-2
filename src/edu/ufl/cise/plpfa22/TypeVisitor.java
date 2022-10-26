@@ -3,21 +3,30 @@ package edu.ufl.cise.plpfa22;
 import edu.ufl.cise.plpfa22.ast.*;
 import edu.ufl.cise.plpfa22.ast.Types.Type;
 
-public class TypeVisitor implements ASTVisitor {
+import static java.lang.Integer.MAX_VALUE;
 
-    boolean lastPass;
+public class TypeVisitor implements ASTVisitor {
+    int numChanges;
+    int numVars;
+    int numTyped;
 
     public TypeVisitor() {
-        lastPass = false;
+        numChanges = MAX_VALUE;
+        numVars = MAX_VALUE;
+        numTyped = 0;
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
-        visitBlock(program.block, arg);
-        lastPass = true;
-        visitBlock(program.block, arg);
+        while (numChanges > 0 && numVars > numTyped) {
+            numChanges = 0; numVars = 0;
+            visitBlock(program.block, arg);
+        }
+        if (numChanges == 0 && numVars > numTyped)
+            throw new TypeCheckException("Type could not be set");
         return null;
     }
     public Object visitBlock(Block block, Object arg) throws PLPException {
+
         for (ConstDec con : block.constDecs)
             visitConstDec(con, arg);
         for (VarDec var : block.varDecs)
@@ -29,6 +38,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatement(Statement statement, Object arg) throws PLPException {
+
         if (statement instanceof StatementAssign)
             visitStatementAssign((StatementAssign) statement, arg);
         else if (statement instanceof StatementCall)
@@ -49,15 +59,15 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
+
         visitIdent(statementAssign.ident, arg);
         visitExpression(statementAssign.expression, arg);
         // If doesn't have a type
         if (statementAssign.ident.getDec().getType() == null) {
-            if (!lastPass)
-                statementAssign.ident.getDec().setType(statementAssign.expression.getType());
+            assignType(statementAssign.ident.getDec(), statementAssign.expression.getType());
         }
         // If it does, make sure compatible
-        else if (lastPass || statementAssign.ident.getDec().getType() != null){
+        else {
             if (!checkCompat(statementAssign.ident, statementAssign.expression)
                 || statementAssign.ident.getDec() instanceof ConstDec) {
                 throw new TypeCheckException("Types are not compatible");
@@ -67,8 +77,9 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
+
         visitIdent(statementCall.ident, arg);
-        if (lastPass || statementCall.ident.getDec().getType() != null) {
+        if (statementCall.ident.getDec().getType() != null) {
             if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
                 throw new TypeCheckException("Types are not compatible");
             }
@@ -77,8 +88,9 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
+
         visitIdent(statementInput.ident, arg);
-        if (lastPass || statementInput.ident.getDec().getType() != null) {
+        if (statementInput.ident.getDec().getType() != null) {
             if (statementInput.ident.getDec().getType() != Type.NUMBER
                     && statementInput.ident.getDec().getType() != Type.BOOLEAN
                     && statementInput.ident.getDec().getType() != Type.STRING) {
@@ -89,8 +101,9 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
+
         visitExpression(statementOutput.expression, arg);
-        if (lastPass || statementOutput.expression.getType() != null) {
+        if (statementOutput.expression.getType() != null) {
             if (statementOutput.expression.getType() != Type.NUMBER
                     && statementOutput.expression.getType() != Type.BOOLEAN
                     && statementOutput.expression.getType() != Type.STRING) {
@@ -101,15 +114,17 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
+
         for (Statement statement : statementBlock.statements)
             visitStatement(statement, arg);
         return null;
     }
 
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
+
         visitExpression(statementIf.expression, arg);
         visitStatement(statementIf.statement, arg);
-        if (lastPass || statementIf.expression.getType() != null) {
+        if (statementIf.expression.getType() != null) {
             if (statementIf.expression.getType() != Type.BOOLEAN) {
                 throw new TypeCheckException("Types are not compatible");
             }
@@ -118,9 +133,10 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
+
         visitExpression(statementWhile.expression, arg);
         visitStatement(statementWhile.statement, arg);
-        if (lastPass || statementWhile.expression.getType() != null) {
+        if (statementWhile.expression.getType() != null) {
             if (statementWhile.expression.getType() != Type.BOOLEAN) {
                 throw new TypeCheckException("Types are not compatible");
             }
@@ -133,6 +149,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpression(Expression expression, Object arg) throws PLPException {
+
         if (expression instanceof ExpressionBinary)
             visitExpressionBinary((ExpressionBinary) expression, arg);
         else if (expression instanceof ExpressionIdent)
@@ -147,18 +164,20 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
+        numVars++;
+
         visitExpression(expressionBinary.e0, arg);
         visitExpression(expressionBinary.e1, arg);
         IToken op = expressionBinary.op;
-        handleImplicit(expressionBinary.e0, expressionBinary.e1);
+        handleImplicit(expressionBinary);
+
         // PLUS
         if (isKind(op, IToken.Kind.PLUS)) {
             if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
                 || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
-                if (!lastPass)
-                    expressionBinary.setType(expressionBinary.e0.getType());
+                assignType(expressionBinary, expressionBinary.e0.getType());
             }
-            else if (lastPass || (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null)) {
+            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
@@ -166,10 +185,9 @@ public class TypeVisitor implements ASTVisitor {
         else if (isKind(op, IToken.Kind.MINUS) || isKind(op, IToken.Kind.DIV)
                 || isKind(op, IToken.Kind.MOD)) {
             if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
-                if (!lastPass)
-                    expressionBinary.setType(Type.NUMBER);
+                assignType(expressionBinary, Type.NUMBER);
             }
-            else if (lastPass || (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null)) {
+            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
@@ -177,10 +195,9 @@ public class TypeVisitor implements ASTVisitor {
         else if (isKind(op, IToken.Kind.TIMES)) {
             if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
                     || expressionBinary.e0.getType() == Type.BOOLEAN)) {
-                if (!lastPass)
-                    expressionBinary.setType(expressionBinary.e0.getType());
+                assignType(expressionBinary, expressionBinary.e0.getType());
             }
-            else if (lastPass || (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null)) {
+            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
@@ -188,10 +205,9 @@ public class TypeVisitor implements ASTVisitor {
         else {
             if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
                     || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
-                if (!lastPass)
-                    expressionBinary.setType(Type.BOOLEAN);
+                assignType(expressionBinary, Type.BOOLEAN);
             }
-            else if (lastPass || (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null)) {
+            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() != null) {
                 throw new TypeCheckException("Types are not compatible");
             }
         }
@@ -199,48 +215,48 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        if (!lastPass)
-            expressionIdent.setType(expressionIdent.getDec().getType());
+        numVars++;
+        if (expressionIdent.getType() == null)
+            assignType(expressionIdent, expressionIdent.getDec().getType());
         return null;
     }
 
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
-        if (!lastPass)
-            expressionNumLit.setType(Type.NUMBER);
+        numVars++;
+        assignType(expressionNumLit, Type.NUMBER);
         return null;
     }
 
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
-        if (!lastPass)
-            expressionStringLit.setType(Type.STRING);
+        numVars++;
+        assignType(expressionStringLit, Type.STRING);
         return null;
     }
 
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
-        if (!lastPass)
-            expressionBooleanLit.setType(Type.BOOLEAN);
+        numVars++;
+        assignType(expressionBooleanLit, Type.BOOLEAN);
         return null;
     }
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        if (!lastPass)
-            procDec.setType(Type.PROCEDURE);
+        numVars++;
+
+        assignType(procDec, Type.PROCEDURE);
         visitBlock(procDec.block, arg);
         return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
+        numVars++;
         if (constDec.val instanceof Integer) {
-            if (!lastPass)
-                constDec.setType(Type.NUMBER);
+            assignType(constDec, Type.NUMBER);
         }
         else if (constDec.val instanceof Boolean) {
-            if (!lastPass)
-                constDec.setType(Type.BOOLEAN);
+            assignType(constDec, Type.BOOLEAN);
         }
         else if (constDec.val instanceof String) {
-            if (!lastPass)
-                constDec.setType(Type.STRING);
+            assignType(constDec, Type.STRING);
         }
         else {
             throw new TypeCheckException("Object is invalid type");
@@ -277,12 +293,40 @@ public class TypeVisitor implements ASTVisitor {
         return false;
     }
 
-    public void handleImplicit(Expression a, Expression b) {
-        if (a.getType() == null && a instanceof ExpressionIdent && b.getType() != null) {
-            a.setType(b.getType());
+    public void handleImplicit(ExpressionBinary expr) {
+        if (expr.e0.getType() == null  && expr.e1.getType() != null) {
+            assignType(expr.e0, expr.e1.getType());
+            if (expr.e0 instanceof ExpressionIdent)
+                assignType(((ExpressionIdent) expr.e0).getDec(), expr.e1.getType());
         }
-        else if (b.getType() == null && b instanceof ExpressionIdent && a.getType() != null) {
-            b.setType(a.getType());
+        else if (expr.e1.getType() == null && expr.e0.getType() != null) {
+            assignType(expr.e1, expr.e0.getType());
+            if (expr.e1 instanceof ExpressionIdent)
+                assignType(((ExpressionIdent) expr.e1).getDec(), expr.e0.getType());
+        }
+//        else if (expr.e0.getType() == null && expr.e1.getType() == null && expr.getType() != null) {
+//            expr.e0.setType(expr.getType());
+//            if (expr.e0 instanceof ExpressionIdent)
+//                ((ExpressionIdent) expr.e0).getDec().setType(expr.e1.getType());
+//            expr.e1.setType(expr.getType());
+//            if (expr.e1 instanceof ExpressionIdent)
+//                ((ExpressionIdent) expr.e1).getDec().setType(expr.e0.getType());
+//        }
+    }
+
+    public void assignType(Declaration dec, Type type) {
+        if (dec.getType() == null && type != null) {
+            dec.setType(type);
+            numChanges++;
+            numTyped++;
+        }
+    }
+
+    public void assignType(Expression expr, Type type) {
+        if (expr.getType() == null && type != null) {
+            expr.setType(type);
+            numChanges++;
+            numTyped++;
         }
     }
 }
