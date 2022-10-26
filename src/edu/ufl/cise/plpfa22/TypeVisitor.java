@@ -23,7 +23,7 @@ public class TypeVisitor implements ASTVisitor {
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
         while (numChanges > 0 && numVars - unused.size() > numTyped) {
-            numChanges = 0; numVars = 0;
+            numChanges = 0; numVars = 0; unused =new ArrayList<>();
             visitBlock(program.block, arg);
         }
         if (numChanges == 0 && numVars - unused.size() > numTyped)
@@ -90,7 +90,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-
         visitIdent(statementInput.ident, arg);
         if (statementInput.ident.getDec().getType() != null) {
             if (statementInput.ident.getDec().getType() != Type.NUMBER
@@ -265,6 +264,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
+        addRef(ident);
         return null;
     }
 
@@ -335,6 +335,12 @@ public class TypeVisitor implements ASTVisitor {
         numVars++;
         if (unused.contains(expr.getDec())) {
             unused.remove(expr.getDec());
+        }
+    }
+
+    public void addRef(Ident ident) {
+        if (unused.contains(ident.getDec())) {
+            unused.remove(ident.getDec());
         }
     }
 }
