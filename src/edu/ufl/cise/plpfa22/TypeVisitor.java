@@ -3,25 +3,30 @@ package edu.ufl.cise.plpfa22;
 import edu.ufl.cise.plpfa22.ast.*;
 import edu.ufl.cise.plpfa22.ast.Types.Type;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.Integer.MAX_VALUE;
 
 public class TypeVisitor implements ASTVisitor {
     int numChanges;
     int numVars;
     int numTyped;
+    List<Declaration> unused;
 
     public TypeVisitor() {
         numChanges = MAX_VALUE;
         numVars = MAX_VALUE;
         numTyped = 0;
+        unused = new ArrayList<>();
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
-        while (numChanges > 0 && numVars > numTyped) {
+        while (numChanges > 0 && numVars - unused.size() > numTyped) {
             numChanges = 0; numVars = 0;
             visitBlock(program.block, arg);
         }
-        if (numChanges == 0 && numVars > numTyped)
+        if (numChanges == 0 && numVars - unused.size() > numTyped)
             throw new TypeCheckException("Type could not be set");
         return null;
     }
@@ -38,7 +43,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatement(Statement statement, Object arg) throws PLPException {
-
         if (statement instanceof StatementAssign)
             visitStatementAssign((StatementAssign) statement, arg);
         else if (statement instanceof StatementCall)
@@ -59,7 +63,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
-
         visitIdent(statementAssign.ident, arg);
         visitExpression(statementAssign.expression, arg);
         // If doesn't have a type
@@ -77,7 +80,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-
         visitIdent(statementCall.ident, arg);
         if (statementCall.ident.getDec().getType() != null) {
             if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
@@ -101,7 +103,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
-
         visitExpression(statementOutput.expression, arg);
         if (statementOutput.expression.getType() != null) {
             if (statementOutput.expression.getType() != Type.NUMBER
@@ -114,14 +115,12 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
-
         for (Statement statement : statementBlock.statements)
             visitStatement(statement, arg);
         return null;
     }
 
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
-
         visitExpression(statementIf.expression, arg);
         visitStatement(statementIf.statement, arg);
         if (statementIf.expression.getType() != null) {
@@ -133,7 +132,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-
         visitExpression(statementWhile.expression, arg);
         visitStatement(statementWhile.statement, arg);
         if (statementWhile.expression.getType() != null) {
@@ -149,7 +147,6 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpression(Expression expression, Object arg) throws PLPException {
-
         if (expression instanceof ExpressionBinary)
             visitExpressionBinary((ExpressionBinary) expression, arg);
         else if (expression instanceof ExpressionIdent)
@@ -165,7 +162,6 @@ public class TypeVisitor implements ASTVisitor {
 
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
         numVars++;
-
         visitExpression(expressionBinary.e0, arg);
         visitExpression(expressionBinary.e1, arg);
         IToken op = expressionBinary.op;
@@ -215,7 +211,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        numVars++;
+        addRef(expressionIdent);
         if (expressionIdent.getType() == null)
             assignType(expressionIdent, expressionIdent.getDec().getType());
         return null;
@@ -240,15 +236,14 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        numVars++;
-
+        addDec(procDec);
         assignType(procDec, Type.PROCEDURE);
         visitBlock(procDec.block, arg);
         return null;
     }
 
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        numVars++;
+        addDec(constDec);
         if (constDec.val instanceof Integer) {
             assignType(constDec, Type.NUMBER);
         }
@@ -265,6 +260,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
+        addDec(varDec);
         return null;
     }
 
@@ -327,6 +323,18 @@ public class TypeVisitor implements ASTVisitor {
             expr.setType(type);
             numChanges++;
             numTyped++;
+        }
+    }
+
+    public void addDec(Declaration dec) {
+        numVars++;
+        unused.add(dec);
+    }
+
+    public void addRef(ExpressionIdent expr) {
+        numVars++;
+        if (unused.contains(expr.getDec())) {
+            unused.remove(expr.getDec());
         }
     }
 }
