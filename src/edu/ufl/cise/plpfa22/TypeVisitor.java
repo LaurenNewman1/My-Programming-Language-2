@@ -66,7 +66,9 @@ public class TypeVisitor implements ASTVisitor {
 
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
         visitIdent(statementInput.ident, arg);
-        if (statementInput.ident.getDec().getType() == Type.PROCEDURE) {
+        if (statementInput.ident.getDec().getType() != Type.NUMBER
+            && statementInput.ident.getDec().getType() != Type.BOOLEAN
+            && statementInput.ident.getDec().getType() != Type.STRING) {
             throw new TypeCheckException("Types are not compatible");
         }
         return null;
@@ -74,7 +76,9 @@ public class TypeVisitor implements ASTVisitor {
 
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
         visitExpression(statementOutput.expression, arg);
-        if (statementOutput.expression.getType() == Type.PROCEDURE) {
+        if (statementOutput.expression.getType() != Type.NUMBER
+            && statementOutput.expression.getType() != Type.BOOLEAN
+            && statementOutput.expression.getType() != Type.STRING) {
             throw new TypeCheckException("Types are not compatible");
         }
         return null;
@@ -128,8 +132,8 @@ public class TypeVisitor implements ASTVisitor {
         IToken op = expressionBinary.op;
         // PLUS
         if (isKind(op, IToken.Kind.PLUS)) {
-            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() != Type.PROCEDURE
-                && expressionBinary.e1.getType() != Type.PROCEDURE) {
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
+                || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
                 expressionBinary.setType(expressionBinary.e0.getType());
             }
             else {
@@ -148,9 +152,9 @@ public class TypeVisitor implements ASTVisitor {
         }
         // TIMES
         else if (isKind(op, IToken.Kind.TIMES)) {
-            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() != Type.PROCEDURE
-                    && expressionBinary.e1.getType() != Type.PROCEDURE && expressionBinary.e0.getType() != Type.STRING
-                    && expressionBinary.e1.getType() != Type.STRING) {
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() == Type.NUMBER
+                    && expressionBinary.e1.getType() == Type.NUMBER && expressionBinary.e0.getType() == Type.BOOLEAN
+                    && expressionBinary.e1.getType() == Type.BOOLEAN) {
                 expressionBinary.setType(expressionBinary.e0.getType());
             }
             else {
@@ -159,8 +163,8 @@ public class TypeVisitor implements ASTVisitor {
         }
         // EQ, NEQ, LT, LE, GT, GE
         else {
-            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && expressionBinary.e0.getType() != Type.PROCEDURE
-                    && expressionBinary.e1.getType() != Type.PROCEDURE) {
+            if (checkCompat(expressionBinary.e0, expressionBinary.e1) && (expressionBinary.e0.getType() == Type.NUMBER
+                    || expressionBinary.e0.getType() == Type.BOOLEAN || expressionBinary.e0.getType() == Type.STRING)) {
                 expressionBinary.setType(Type.BOOLEAN);
             }
             else {
@@ -178,14 +182,17 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
+        expressionNumLit.setType(Type.NUMBER);
         return null;
     }
 
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
+        expressionStringLit.setType(Type.STRING);
         return null;
     }
 
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
+        expressionBooleanLit.setType(Type.BOOLEAN);
         return null;
     }
 
@@ -212,7 +219,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        throw new PLPException();
+        return null;
     }
 
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
