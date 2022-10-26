@@ -328,7 +328,8 @@ public class TypeVisitor implements ASTVisitor {
 
     public void addDec(Declaration dec) {
         numVars++;
-        unused.add(dec);
+        if (dec instanceof VarDec)
+            unused.add(dec);
     }
 
     public void addRef(ExpressionIdent expr) {
