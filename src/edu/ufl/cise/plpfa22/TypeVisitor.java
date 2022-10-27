@@ -13,14 +13,12 @@ public class TypeVisitor implements ASTVisitor {
     int numVars;
     int numTyped;
     List<Declaration> unused;
-    List<Declaration> decs;
 
     public TypeVisitor() {
         numChanges = MAX_VALUE;
         numVars = MAX_VALUE;
         numTyped = 0;
         unused = new ArrayList<>();
-        decs = new ArrayList<>();
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
@@ -67,9 +65,13 @@ public class TypeVisitor implements ASTVisitor {
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         visitIdent(statementAssign.ident, arg);
         visitExpression(statementAssign.expression, arg);
-        // If doesn't have a type
-        if (statementAssign.ident.getDec().getType() == null) {
+        // If left doesn't have a type
+        if (statementAssign.ident.getDec().getType() == null && statementAssign.expression.getType() != null) {
             assignType(statementAssign.ident.getDec(), statementAssign.expression.getType());
+        }
+        // If right doesn't have a type
+        else if (statementAssign.expression.getType() == null && statementAssign.ident.getDec().getType() != null) {
+            assignType(statementAssign.expression, statementAssign.ident.getDec().getType());
         }
         // If it does, make sure compatible
         else {
@@ -325,6 +327,11 @@ public class TypeVisitor implements ASTVisitor {
             expr.setType(type);
             numChanges++;
             numTyped++;
+            if (expr instanceof ExpressionIdent && ((ExpressionIdent) expr).getDec().getType() == null) {
+                ((ExpressionIdent) expr).getDec().setType(type);
+                numChanges++;
+                numTyped++;
+            }
         }
     }
 
@@ -354,8 +361,6 @@ public class TypeVisitor implements ASTVisitor {
 
     public void addDec(Declaration dec) {
         numVars++;
-        if (!decs.contains(dec))
-            decs.add(dec);
         if (dec instanceof VarDec)
             unused.add(dec);
     }
@@ -368,14 +373,9 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public void addRef(Ident ident) {
-        int nest = ident.getNest();
-        Declaration dec = ident.getDec();
-        while (nest >= 0) {
-            if (unused.contains(dec)) {
-                unused.remove(dec);
-                break;
-            }
-            dec.setNest(--nest);
+        //numVars++;
+        if (unused.contains(ident.getDec())) {
+            unused.remove(ident.getDec());
         }
     }
 }
