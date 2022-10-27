@@ -13,12 +13,14 @@ public class TypeVisitor implements ASTVisitor {
     int numVars;
     int numTyped;
     List<Declaration> unused;
+    List<Declaration> decs;
 
     public TypeVisitor() {
         numChanges = MAX_VALUE;
         numVars = MAX_VALUE;
         numTyped = 0;
         unused = new ArrayList<>();
+        decs = new ArrayList<>();
     }
 
     public Object visitProgram(Program program, Object arg) throws PLPException {
@@ -211,7 +213,7 @@ public class TypeVisitor implements ASTVisitor {
 
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
         addRef(expressionIdent);
-        if (expressionIdent.getType() == null)
+        if (expressionIdent.getType() == null && expressionIdent.getDec().getType() != null)
             assignType(expressionIdent, expressionIdent.getDec().getType());
         return null;
     }
@@ -300,14 +302,14 @@ public class TypeVisitor implements ASTVisitor {
             if (expr.e1 instanceof ExpressionIdent)
                 assignType(((ExpressionIdent) expr.e1).getDec(), expr.e0.getType());
         }
-//        else if (expr.e0.getType() == null && expr.e1.getType() == null && expr.getType() != null) {
-//            expr.e0.setType(expr.getType());
-//            if (expr.e0 instanceof ExpressionIdent)
-//                ((ExpressionIdent) expr.e0).getDec().setType(expr.e1.getType());
-//            expr.e1.setType(expr.getType());
-//            if (expr.e1 instanceof ExpressionIdent)
-//                ((ExpressionIdent) expr.e1).getDec().setType(expr.e0.getType());
-//        }
+        else if (expr.e0.getType() == null && expr.e1.getType() == null && expr.getType() != null) {
+            assignType(expr.e0, expr.getType());
+            if (expr.e0 instanceof ExpressionIdent)
+                assignType(((ExpressionIdent) expr.e0).getDec(), expr.getType());
+            assignType(expr.e1, expr.getType());
+            if (expr.e1 instanceof ExpressionIdent)
+                assignType(((ExpressionIdent) expr.e1).getDec(), expr.getType());
+        }
     }
 
     public void assignType(Declaration dec, Type type) {
@@ -326,8 +328,34 @@ public class TypeVisitor implements ASTVisitor {
         }
     }
 
+//    public void assignType(Ident ident) {
+//        int nest = ident.getNest();
+//        while (nest >= 0) {
+//            for (Declaration d : decs) {
+//                if (d instanceof VarDec && ((VarDec)d).ident.equals(ident) && d.getType() != null) {
+//                    ident.getDec().setType(d.getType());
+//                    numChanges++;
+//                    numTyped++;
+//                }
+//                else if (d instanceof ConstDec && ((ConstDec)d).ident.equals(ident) && d.getType() != null) {
+//                    ident.getDec().setType(d.getType());
+//                    numChanges++;
+//                    numTyped++;
+//                }
+//                else if (d instanceof ProcDec && ((ProcDec)d).ident.equals(ident) && d.getType() != null) {
+//                    ident.getDec().setType(d.getType());
+//                    numChanges++;
+//                    numTyped++;
+//                }
+//            }
+//            nest--;
+//        }
+//    }
+
     public void addDec(Declaration dec) {
         numVars++;
+        if (!decs.contains(dec))
+            decs.add(dec);
         if (dec instanceof VarDec)
             unused.add(dec);
     }
@@ -340,8 +368,14 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public void addRef(Ident ident) {
-        if (unused.contains(ident.getDec())) {
-            unused.remove(ident.getDec());
+        int nest = ident.getNest();
+        Declaration dec = ident.getDec();
+        while (nest >= 0) {
+            if (unused.contains(dec)) {
+                unused.remove(dec);
+                break;
+            }
+            dec.setNest(--nest);
         }
     }
 }
