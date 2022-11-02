@@ -65,8 +65,12 @@ public class TypeVisitor implements ASTVisitor {
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         visitIdent(statementAssign.ident, arg);
         visitExpression(statementAssign.expression, arg);
+        // Can't assign procedures
+        if (statementAssign.ident.getDec().getType() == Type.PROCEDURE || statementAssign.expression.getType() == Type.PROCEDURE) {
+            throw new TypeCheckException("Cannot assign procedures");
+        }
         // If left doesn't have a type
-        if (statementAssign.ident.getDec().getType() == null && statementAssign.expression.getType() != null) {
+        else if (statementAssign.ident.getDec().getType() == null && statementAssign.expression.getType() != null) {
             assignType(statementAssign.ident.getDec(), statementAssign.expression.getType());
         }
         // If right doesn't have a type
@@ -101,6 +105,9 @@ public class TypeVisitor implements ASTVisitor {
                     && statementInput.ident.getDec().getType() != Type.STRING) {
                 throw new TypeCheckException("Types are not compatible");
             }
+        }
+        if (statementInput.ident.getDec() instanceof ConstDec) {
+            throw new TypeCheckException("Cannot reassign constants");
         }
         return null;
     }
@@ -304,7 +311,8 @@ public class TypeVisitor implements ASTVisitor {
             if (expr.e1 instanceof ExpressionIdent)
                 assignType(((ExpressionIdent) expr.e1).getDec(), expr.e0.getType());
         }
-        else if (expr.e0.getType() == null && expr.e1.getType() == null && expr.getType() != null) {
+        else if (expr.e0.getType() == null && expr.e1.getType() == null && expr.getType() != null
+            && expr.getType() != Type.BOOLEAN && expr.getType() != Type.PROCEDURE) {
             assignType(expr.e0, expr.getType());
             if (expr.e0 instanceof ExpressionIdent)
                 assignType(((ExpressionIdent) expr.e0).getDec(), expr.getType());
@@ -334,30 +342,6 @@ public class TypeVisitor implements ASTVisitor {
             }
         }
     }
-
-//    public void assignType(Ident ident) {
-//        int nest = ident.getNest();
-//        while (nest >= 0) {
-//            for (Declaration d : decs) {
-//                if (d instanceof VarDec && ((VarDec)d).ident.equals(ident) && d.getType() != null) {
-//                    ident.getDec().setType(d.getType());
-//                    numChanges++;
-//                    numTyped++;
-//                }
-//                else if (d instanceof ConstDec && ((ConstDec)d).ident.equals(ident) && d.getType() != null) {
-//                    ident.getDec().setType(d.getType());
-//                    numChanges++;
-//                    numTyped++;
-//                }
-//                else if (d instanceof ProcDec && ((ProcDec)d).ident.equals(ident) && d.getType() != null) {
-//                    ident.getDec().setType(d.getType());
-//                    numChanges++;
-//                    numTyped++;
-//                }
-//            }
-//            nest--;
-//        }
-//    }
 
     public void addDec(Declaration dec) {
         numVars++;

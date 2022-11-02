@@ -232,7 +232,7 @@ public class PrettyPrintVisitor implements ASTVisitor {
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         String name = String.valueOf(procDec.ident.getText());
         int nest = procDec.getNest();
-        sb.append("PROCEDURE " + name + " at nesting level " + nest );
+        sb.append(procDec.getType() + " " + name + " at nesting level " + nest );
         sb.down();
         procDec.block.visit(this, arg);
         sb.up("END OF PROCEDURE " + name );

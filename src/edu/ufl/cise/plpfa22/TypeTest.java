@@ -1220,6 +1220,566 @@ PROCEDURE whilen;
                 """;
         runTest(input,testInfo, expected);
     }
+
+    @Test
+    void test_proc1(TestInfo testInfo) throws PLPException{
+        String input = """
+                PROCEDURE p; ! "Hi";
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs none
+                      ProcDecs
+                        PROCEDURE p at nesting level 0
+                          BLOCK
+                            ConstDecs  none
+                            VarDecs none
+                            ProcDecs none
+                            STATEMENT
+                              OUTPUT
+                                StringLit "Hi"
+                            END OF STATEMENT
+                          END OF BLOCK
+                        END OF PROCEDURE p
+                      STATEMENT
+                        EmptyStatement
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test1(TestInfo testInfo) throws PLPException{
+        String input = """
+                PROCEDURE p; ! "Hi";
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs none
+                      ProcDecs
+                        PROCEDURE p at nesting level 0
+                          BLOCK
+                            ConstDecs  none
+                            VarDecs none
+                            ProcDecs none
+                            STATEMENT
+                              OUTPUT
+                                StringLit "Hi"
+                            END OF STATEMENT
+                          END OF BLOCK
+                        END OF PROCEDURE p
+                      STATEMENT
+                        EmptyStatement
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test2(TestInfo testInfo) throws PLPException{
+        String input = """
+                CONST c = "Hi";
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs\s
+                        CONST c=Hi at nest level 0 type=STRING
+                      VarDecs none
+                      ProcDecs none
+                      STATEMENT
+                        EmptyStatement
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test3(TestInfo testInfo) throws PLPException{
+        String input = """
+                VAR v;
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs
+                        VAR v at nest level 0 type=null
+                      ProcDecs none
+                      STATEMENT
+                        EmptyStatement
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test4(TestInfo testInfo) throws PLPException{
+        String input = """
+                VAR v;
+                v := "Hi"
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs
+                        VAR v at nest level 0 type=STRING
+                      ProcDecs none
+                      STATEMENT
+                        ASSIGNMENT
+                          Ident  v identNest=0 decNest=0 type=STRING
+                          StringLit "Hi"
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test5(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! 5
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs none
+                      ProcDecs none
+                      STATEMENT
+                        OUTPUT
+                          NumLit 5
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test6(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! "Hi"
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs none
+                      ProcDecs none
+                      STATEMENT
+                        OUTPUT
+                          StringLit "Hi"
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test7(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! TRUE
+                .""";
+        String expeccted = """
+                  
+                  PROGRAM
+                    BLOCK
+                      ConstDecs  none
+                      VarDecs none
+                      ProcDecs none
+                      STATEMENT
+                        OUTPUT
+                          BooleanLit true
+                      END OF STATEMENT
+                    END OF BLOCK
+                  END OF PROGRAM
+                """;
+        runTest(input, testInfo, expeccted);
+    }
+
+    @Test
+    void test8(TestInfo testInfo) throws PLPException{
+        String input = """
+                CONST c = "Hi";
+                c := "Bye" // cannot reassign const
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test9(TestInfo testInfo) throws PLPException{
+        String input = """
+                VAR v;
+                BEGIN
+                  v := 0;
+                  v := "Hi" // cannot assign string to type number
+                END
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test10(TestInfo testInfo) throws PLPException{
+        String input = """
+                VAR v;
+                BEGIN
+                  v := 0;
+                  CALL v // can only call procedures
+                END
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test11(TestInfo testInfo) throws PLPException{
+        String input = """
+                PROCEDURE p; ! "Hi";
+                ? p // cannot be procedure
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test12(TestInfo testInfo) throws PLPException{
+        String input = """
+                PROCEDURE p; ! "Hi";
+                ! p // cannot be procedure
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test13(TestInfo testInfo) throws PLPException{
+        String input = """
+                CONST x = 1;
+                IF (x) THEN ! x // condition must be boolean
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test14(TestInfo testInfo) throws PLPException{
+        String input = """
+                CONST x = 1;
+                WHILE (x) DO ! x // condition must be boolean
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test15(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! 1 + "Hi" // incompatible types
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test16(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! 1 - "Hi" // incompatible types
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test17(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! 1 * "Hi" // incompatible types
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test18(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! 1 >= "Hi" // incompatible types
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void test19(TestInfo testInfo) throws PLPException{
+        String input = """
+                ! "Bye" - "Hi" // must be numbers
+                .""";
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void ss_testCannotInferType(TestInfo testInfo) throws PLPException {
+        String input = """
+                VAR x, y, z;
+                BEGIN
+                z:= FALSE;
+                !(x=y) * z
+                END
+                .
+                """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void ss_testProcedureAssignment(TestInfo testInfo) {
+        String input = """
+           PROCEDURE A;
+           ;
+                 PROCEDURE B;
+                 ;
+                 A := B  //Cannot assign procedure to another
+                 .
+                 """;
+        runTest(input, testInfo, TypeCheckException.class);
+
+    }
+
+
+    @Test
+    void ss_testAssignIntToString(TestInfo testInfo) {
+        String input = """
+           VAR x;
+           BEGIN
+           x:= 5;
+           x:= "test"
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void ss_testInferType(TestInfo testInfo) throws PLPException {
+        String input = """
+           VAR x, y, z;
+           BEGIN
+           y := 1;
+           z := FALSE;
+           ! (x = y) * z // Inferred type of x
+           END
+           .
+           """;
+        runTest(input, testInfo);
+
+    }
+
+    @Test
+    void ss_testIncorrectAssignmentComparison(TestInfo testInfo) throws PLPException {
+        String input = """
+           VAR x, y, z;
+           BEGIN
+           x := 10;
+           y := "hello";
+           z := FALSE;
+           ! (x = y) * z
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void ss_testIncorrectGuardCondition(TestInfo testInfo) throws PLPException {
+        String input = """
+           VAR x, y, z;
+           BEGIN
+           x := 10;
+           y := "hello";
+           z := FALSE;
+           IF y THEN ! y ;
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void ss_testIncorrectWhileGuardCondition(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST x = 5;
+           BEGIN
+               WHILE x
+               DO
+               !x;
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+
+
+    @Test
+    void ss_testIncorrectTypeAfterAssign(TestInfo testInfo) throws PLPException {
+        String input = """
+           VAR x, y, z;
+           BEGIN
+           x := 10;
+           z := FALSE;
+           ! (x = y) * z; //Type error
+           y := "hello"
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void inputToConst(TestInfo testInfo) throws PLPException{
+        String input = """
+        CONST e = 5;
+		? e
+		.
+        """;
+        runTest(input,testInfo, TypeCheckException.class);
+    }
+
+    @Test
+    void nithin0_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b =1, c=TRUE;
+           CONST d=0;
+           VAR x,y,z;
+           BEGIN
+           !y;
+           x := a;
+           y := x+y+z;
+           //z := 0
+           END
+           .
+           """;
+        runTest(input, testInfo);
+    }
+
+    @Test
+    void nithin1_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b =1, c=TRUE;
+           CONST d=0;
+           VAR x,y,z;
+           BEGIN
+           !y;
+           x := a;
+           y := x+y+z;
+           z := 0  //type not compatible
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException .class);
+    }
+
+    @Test
+    void nithin2_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b =1, c=TRUE;
+           CONST d=FALSE;
+           VAR x,y,z;
+           BEGIN
+           ! ((x=y)=d) * z;  //x, y cannot be inferred
+           z := TRUE
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException .class);
+    }
+
+    @Test
+    void nithin3_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b=1, c=TRUE;
+           CONST d=FALSE;
+           VAR x,y,z;
+           PROCEDURE e;
+               VAR x;   //creating a new local variable to replace global x
+               PROCEDURE f;
+               x:=4   //type assigned to this local variable
+               ;
+           CALL f
+           ;
+           BEGIN
+           CALL e;
+           ! ((x=y)=d) * z;  //x, y cannot be inferred
+           z := TRUE
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException .class);
+    }
+
+    @Test
+    void nithin4_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b=1, c=TRUE;
+           CONST d=FALSE;
+           VAR x,y,z;
+           PROCEDURE e;
+               //VAR x;      no new variable declared
+               PROCEDURE f;
+               x:=4          //Inferring the type of the global variable in this scope
+               ;
+           CALL f
+           ;
+           BEGIN
+           CALL e;
+           ! ((x=y)=d) * z;  //x, y can be inferred
+           z := TRUE
+           END
+           .
+           """;
+        runTest(input, testInfo);
+    }
+
+    @Test
+    void nithin5_test(TestInfo testInfo) throws PLPException {
+        String input = """
+           CONST a="hello", b=1, c=TRUE;
+           CONST d=FALSE;
+           VAR x,y,z;
+           PROCEDURE e;
+           ;
+           BEGIN
+           CALL e;
+           CALL x
+           END
+           .
+           """;
+        runTest(input, testInfo, TypeCheckException .class);
+    }
+
+    @Test
+    void error_reassignVar(TestInfo testInfo) throws PLPException{
+        String input = """
+			VAR x;
+			BEGIN
+			x:=5;
+			x:="test"	// we are not allowed to reassign a var to a different type
+			END
+			.
+			""";
+        runTest(input,testInfo, TypeCheckException.class);
+    }
 }
 
 
