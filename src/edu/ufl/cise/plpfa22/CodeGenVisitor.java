@@ -126,182 +126,240 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor) arg;
 		Type argType = expressionBinary.e0.getType();
 		Kind op = expressionBinary.op.getKind();
-		expressionBinary.e0.visit(this, arg);
-		expressionBinary.e1.visit(this, arg);
 		switch (argType) {
-		case NUMBER -> {
-			switch (op) {
-				case PLUS -> mv.visitInsn(IADD);
-				case MINUS -> mv.visitInsn(ISUB);
-				case TIMES -> mv.visitInsn(IMUL);
-				case DIV -> mv.visitInsn(IDIV);
-				case MOD -> mv.visitInsn(IREM);
-				case EQ -> {
-					Label labelNumEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostNumEq);
-				}
-				case NEQ -> {
-					Label labelNumEqTrueBr = new Label();
-					mv.visitJumpInsn(IF_ICMPNE, labelNumEqTrueBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqTrueBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostNumEq);
-				}
-				case LT -> {
-					Label labelNumEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPLT, labelNumEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostNumEq);
-				}
-				case LE -> {
-					Label labelNumEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPLE, labelNumEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostNumEq);
-				}
-				case GT -> {
-					Label labelNumEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPGT, labelNumEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostNumEq);
-				}
-				case GE -> {
-					Label labelNumEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPGE, labelNumEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostNumEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostNumEq);
-					mv.visitLabel(labelNumEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostNumEq);
-				}
-				default -> {
-					throw new IllegalStateException("code gen bug in visitExpressionBinary NUMBER");
-				}
-			}
-		}
-		case BOOLEAN -> {
-			switch (op) {
-				case PLUS -> mv.visitInsn(IOR);
-				case TIMES -> mv.visitInsn(IAND);
-				case EQ -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPNE, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				case NEQ -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPNE, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				case LT -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPLT, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				case LE -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPLE, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				case GT -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPGT, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				case GE -> {
-					Label labelBoolEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ICMPGE, labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostBoolEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostBoolEq);
-					mv.visitLabel(labelBoolEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostBoolEq);
-				}
-				default -> {
-					throw new IllegalStateException("code gen bug in visitExpressionBinary NUMBER");
+			case NUMBER -> {
+				expressionBinary.e0.visit(this, arg);
+				expressionBinary.e1.visit(this, arg);
+				switch (op) {
+					case PLUS -> mv.visitInsn(IADD);
+					case MINUS -> mv.visitInsn(ISUB);
+					case TIMES -> mv.visitInsn(IMUL);
+					case DIV -> mv.visitInsn(IDIV);
+					case MOD -> mv.visitInsn(IREM);
+					case EQ -> {
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						mv.visitLabel(labelPostNumEq);
+					}
+					case NEQ -> {
+						Label labelNumEqTrueBr = new Label();
+						mv.visitJumpInsn(IF_ICMPNE, labelNumEqTrueBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqTrueBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostNumEq);
+					}
+					case LT -> {
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLT, labelNumEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostNumEq);
+					}
+					case LE -> {
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLE, labelNumEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostNumEq);
+					}
+					case GT -> {
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGT, labelNumEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostNumEq);
+					}
+					case GE -> {
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGE, labelNumEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostNumEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostNumEq);
+						mv.visitLabel(labelNumEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostNumEq);
+					}
+					default -> {
+						throw new IllegalStateException("code gen bug in visitExpressionBinary NUMBER");
+					}
 				}
 			}
-		}
-		case STRING -> {
-			switch (op) {
-				case PLUS -> {
-					String descriptor = "(Ljava/lang/String;)Ljava/lang/String;";
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", descriptor, false);
-					return null;
-				}
-				case EQ -> {
-					Label labelStringEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					Label labelPostStringEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStringEq);
-					mv.visitLabel(labelStringEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostStringEq);
-				}
-				case NEQ -> {
-					Label labelStringEqFalseBr = new Label();
-					mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
-					mv.visitInsn(ICONST_0);
-					Label labelPostStringEq = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStringEq);
-					mv.visitLabel(labelStringEqFalseBr);
-					mv.visitInsn(ICONST_1);
-					mv.visitLabel(labelPostStringEq);
+			case BOOLEAN -> {
+				expressionBinary.e0.visit(this, arg);
+				expressionBinary.e1.visit(this, arg);
+				switch (op) {
+					case PLUS -> mv.visitInsn(IOR);
+					case TIMES -> mv.visitInsn(IAND);
+					case EQ -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPNE, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					case NEQ -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPNE, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					case LT -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLT, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					case LE -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLE, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					case GT -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGT, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					case GE -> {
+						Label labelBoolEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGE, labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostBoolEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostBoolEq);
+						mv.visitLabel(labelBoolEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostBoolEq);
+					}
+					default -> {
+						throw new IllegalStateException("code gen bug in visitExpressionBinary NUMBER");
+					}
 				}
 			}
-		}
-		default -> {
-			throw new IllegalStateException("code gen bug in visitExpressionBinary");
-		}
+			case STRING -> {
+				switch (op) {
+					case PLUS -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
+						String descriptor = "(Ljava/lang/String;)Ljava/lang/String;";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", descriptor, false);
+					}
+					case EQ -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
+						Label labelStringEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						Label labelPostStringEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostStringEq);
+						mv.visitLabel(labelStringEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						mv.visitLabel(labelPostStringEq);
+					}
+					case NEQ -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
+						Label labelStringEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostStringEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostStringEq);
+						mv.visitLabel(labelStringEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostStringEq);
+					}
+					case LT -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", descriptor, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						Label labelStringEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostStringEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostStringEq);
+						mv.visitLabel(labelStringEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostStringEq);
+
+						mv.visitInsn(IAND);
+					}
+					case GT -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", descriptor, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						Label labelStringEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
+						mv.visitInsn(ICONST_0);
+						Label labelPostStringEq = new Label();
+						mv.visitJumpInsn(GOTO, labelPostStringEq);
+						mv.visitLabel(labelStringEqFalseBr);
+						mv.visitInsn(ICONST_1);
+						mv.visitLabel(labelPostStringEq);
+
+						mv.visitInsn(IAND);
+					}
+					case LE -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", descriptor, false);
+					}
+					case GE -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", descriptor, false);
+
+					}
+				}
+			}
+			default -> {
+				throw new IllegalStateException("code gen bug in visitExpressionBinary");
+			}
 		}
 		return null;
 	}

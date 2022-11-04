@@ -334,22 +334,22 @@ public class CodeGenTests {
 	public void stringRelOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! "FA" < "FALSE";
-				! "FA" <= "FALSE";
-				! "FA" > "FALSE";
-				! "FA" >= "FALSE";
-				! "FALSE" < "FALSE";
-				! "FALSE" <= "FALSE";
-				! "FALSE" > "FALSE";
-				! "FALSE" >= "FALSE";
-				! "FALSE" < "FA";
-				! "FALSE" <= "FA";
-				! "FALSE" > "FA";
-				! "FALSE" >= "FA"	;
-				! "FA" < "FA";
-				! "FA" <= "FA";
-				! "FA" > "FA";
-				! "FA" >= "FA"					
+				! "FA" < "FALSE";     // true
+				! "FA" <= "FALSE";    // true
+				! "FA" > "FALSE";     // false
+				! "FA" >= "FALSE";    // false
+				! "FALSE" < "FALSE";  // false
+				! "FALSE" <= "FALSE"; // true
+				! "FALSE" > "FALSE";  // false
+				! "FALSE" >= "FALSE"; // true
+				! "FALSE" < "FA";     // false
+				! "FALSE" <= "FA";    // false
+				! "FALSE" > "FA";     // false
+				! "FALSE" >= "FA";    // false
+				! "FA" < "FA";        // false
+				! "FA" <= "FA";       // true
+				! "FA" > "FA";        // false
+				! "FA" >= "FA"		  // true			
 				END
 				.
 				""";
