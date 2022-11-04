@@ -165,11 +165,11 @@ public class CodeGenTests {
 	public void intOps(TestInfo testInfo)throws Exception{
 		String input = """
 			BEGIN 
-			! 1+3;
-			! 7-3;
-			! 2*2;
-			! 16/4;
-			! 20%8;
+			! 1+3;  // 4
+			! 7-3;  // 4
+			! 2*2;  // 4
+			! 16/4; // 4
+			! 20%8; // 4
 			END
 			.
 			""";
@@ -188,10 +188,10 @@ public class CodeGenTests {
 	public void intEqOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! 3 = 4;
-				! 3 = 3;
-				! 3 # 4;
-				! 3 # 3
+				! 3 = 4; // false
+				! 3 = 3; // true
+				! 3 # 4; // true
+				! 3 # 3  // false
 				END
 				.
 				""";
@@ -212,14 +212,14 @@ public class CodeGenTests {
 	public void boolEqOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! TRUE = TRUE;
-				! TRUE # TRUE;
-				! FALSE = FALSE;
-				! FALSE # FALSE;
-				! TRUE = FALSE;
-				! TRUE # FALSE;
-				! FALSE = TRUE;
-				! FALSE # TRUE;
+				! TRUE = TRUE;   // true
+				! TRUE # TRUE;   // false
+				! FALSE = FALSE; // true
+				! FALSE # FALSE; // false
+				! TRUE = FALSE;  // false
+				! TRUE # FALSE;  // true
+				! FALSE = TRUE;  // false
+				! FALSE # TRUE;  // true
 				END
 				.
 				""";
@@ -242,18 +242,18 @@ public class CodeGenTests {
 	public void intRelOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! 3 < 4;
-				! 3 <= 4;
-				! 3 > 4;
-				! 3 >= 4;
-				! 4 < 4;
-				! 4 <= 4;
-				! 4 > 4;
-				! 4 >= 4;
-				! 4 < 3;
-				! 4 <= 3;
-				! 4 > 3;
-				! 4 >= 3						
+				! 3 < 4;  // true
+				! 3 <= 4; // true
+				! 3 > 4;  // false
+				! 3 >= 4; // false
+				! 4 < 4;  // false
+				! 4 <= 4; // true
+				! 4 > 4;  // false
+				! 4 >= 4; // true
+				! 4 < 3;  // false
+				! 4 <= 3; // false
+				! 4 > 3;  // true
+				! 4 >= 3  // true					
 				END
 				.
 				""";
@@ -273,22 +273,22 @@ public class CodeGenTests {
 	public void boolRelOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! FALSE < TRUE;
-				! FALSE <= TRUE;
-				! FALSE > TRUE;
-				! FALSE >= TRUE;
-				! TRUE < TRUE;
-				! TRUE <= TRUE;
-				! TRUE > TRUE;
-				! TRUE >= TRUE;
-				! TRUE < FALSE;
-				! TRUE <= FALSE;
-				! TRUE > FALSE;
-				! TRUE >= FALSE	;
-				! FALSE < FALSE;
-				! FALSE <= FALSE;
-				! FALSE > FALSE;
-				! FALSE >= FALSE					
+				! FALSE < TRUE;  // true
+				! FALSE <= TRUE; // true
+				! FALSE > TRUE;  // false
+				! FALSE >= TRUE; // false
+				! TRUE < TRUE;   // false
+				! TRUE <= TRUE;  // true
+				! TRUE > TRUE;   // false
+				! TRUE >= TRUE;  // true
+				! TRUE < FALSE;  // false
+				! TRUE <= FALSE; // false
+				! TRUE > FALSE;  // true
+				! TRUE >= FALSE	;// true
+				! FALSE < FALSE; // false
+				! FALSE <= FALSE;// true
+				! FALSE > FALSE; // false
+				! FALSE >= FALSE // true			
 				END
 				.
 				""";
