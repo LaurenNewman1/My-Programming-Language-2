@@ -309,10 +309,10 @@ public class CodeGenTests {
 	public void stringEqOps(TestInfo testInfo) throws Exception {
 		String input = """
 				BEGIN
-				! "red" = "blue";
-				! "red"= "red";
-				! "red" # "blue";
-				! "red" # "red"
+				! "red" = "blue"; // false
+				! "red"= "red";   // true
+				! "red" # "blue"; // true
+				! "red" # "red"   // false
 				END
 				.
 				""";
@@ -362,6 +362,25 @@ public class CodeGenTests {
 		Object[] args = new Object[1];  
 		String className = "edu.ufl.cise.plpfa22.prog";
 		loadClassAndRunMethod(bytecode, className, "main", args);		
+	}
+
+	@DisplayName("stringConcatOp")
+	@Test
+	public void stringConcatOp(TestInfo testInfo) throws Exception {
+		String input = """
+				! "birth" + "day" // birthday
+				.
+				""";
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
 	}
 	
 	}
