@@ -410,6 +410,34 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 
 	}
+
+	@DisplayName("boolOps")
+	@Test
+	public void boolOps(TestInfo testInfo) throws Exception {
+		String input = """
+    			BEGIN
+					! TRUE + TRUE;    // true
+					! TRUE + FALSE;   // true
+					! FALSE + TRUE;   // true
+					! FALSE + FALSE;  // false
+					! TRUE * TRUE;    // true
+					! TRUE * FALSE;   // false
+					! FALSE * TRUE;   // false
+					! FALSE * FALSE   // false
+				END
+				.
+				""";
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
+	}
 	
 	}
 
