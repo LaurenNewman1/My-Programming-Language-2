@@ -382,6 +382,34 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 
 	}
+
+	@DisplayName("ifStatement")
+	@Test
+	public void ifStatement(TestInfo testInfo) throws Exception {
+		String input = """
+    			BEGIN
+					IF TRUE
+					THEN ! "this should print (1)";
+					IF FALSE
+					THEN ! "this should not print";
+					IF TRUE + TRUE
+					THEN ! "this should print (2)";
+					IF TRUE + FALSE
+					THEN ! "this should print (3)"
+				END
+				.
+				""";
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
+	}
 	
 	}
 
