@@ -438,6 +438,26 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 
 	}
+
+	@DisplayName("whileLoop")
+	@Test
+	public void whileLoop(TestInfo testInfo) throws Exception {
+		String input = """
+    			WHILE FALSE
+    			DO ! "this should not print"
+				.
+				""";
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
+	}
 	
 	}
 

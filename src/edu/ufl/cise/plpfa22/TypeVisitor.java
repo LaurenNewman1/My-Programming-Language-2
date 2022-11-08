@@ -70,11 +70,13 @@ public class TypeVisitor implements ASTVisitor {
             throw new TypeCheckException("Cannot assign procedures");
         }
         // If left doesn't have a type
-        else if (statementAssign.ident.getDec().getType() == null && statementAssign.expression.getType() != null) {
+        else if (statementAssign.ident.getDec().getType() == null && statementAssign.expression.getType() != null
+            && !(statementAssign.ident.getDec() instanceof ConstDec)) {
             assignType(statementAssign.ident.getDec(), statementAssign.expression.getType());
         }
         // If right doesn't have a type
-        else if (statementAssign.expression.getType() == null && statementAssign.ident.getDec().getType() != null) {
+        else if (statementAssign.expression.getType() == null && statementAssign.ident.getDec().getType() != null
+            && !(statementAssign.ident.getDec() instanceof ConstDec)) {
             assignType(statementAssign.expression, statementAssign.ident.getDec().getType());
         }
         // If it does, make sure compatible
