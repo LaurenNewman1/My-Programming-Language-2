@@ -684,7 +684,7 @@ class ParserTest {
 	}
 
 	@Test
-	// ExpressionBooleanLit
+		// ExpressionBooleanLit
 	void test17() throws PLPException {
 		String input = """
 				!TRUE.""";
@@ -699,7 +699,7 @@ class ParserTest {
 	}
 
 	@Test
-	// ExpressionStringLit
+		// ExpressionStringLit
 	void test18() throws PLPException {
 		String input = """
 				!"String\\n".""";
@@ -714,7 +714,7 @@ class ParserTest {
 	}
 
 	@Test
-	// ExpressionNumLit
+		// ExpressionNumLit
 	void test19() throws PLPException {
 		String input = """
 				!10.""";
@@ -729,7 +729,7 @@ class ParserTest {
 	}
 
 	@Test
-	// ExpressionIdent
+		// ExpressionIdent
 	void test20() throws PLPException {
 		String input = """
 				!Ident.""";
@@ -744,7 +744,7 @@ class ParserTest {
 	}
 
 	@Test
-	// Expression with Parentheses
+		// Expression with Parentheses
 	void test21() throws PLPException {
 		String input = """
 				!(simple_expr).""";
@@ -759,7 +759,7 @@ class ParserTest {
 	}
 
 	@Test
-	// Missing Right Parenthesis
+		// Missing Right Parenthesis
 	void test22() throws PLPException {
 		String input = """
 				!(missing_paren.
@@ -783,7 +783,7 @@ class ParserTest {
 	}
 
 	@Test
-	// Multiplicative Expression
+		// Multiplicative Expression
 	void test24() throws PLPException {
 		String input = """
 				!1 - FALSE.""";
@@ -806,7 +806,7 @@ class ParserTest {
 	}
 
 	@Test
-	// Missing second expression
+		// Missing second expression
 	void test25() throws PLPException {
 		String input = """
 				!5+

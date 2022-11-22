@@ -290,28 +290,24 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", descriptor, false);
 					}
 					case EQ -> {
-						expressionBinary.e0.visit(this, arg);
 						expressionBinary.e1.visit(this, arg);
-						Label labelStringEqFalseBr = new Label();
-						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
-						mv.visitInsn(ICONST_1);
-						Label labelPostStringEq = new Label();
-						mv.visitJumpInsn(GOTO, labelPostStringEq);
-						mv.visitLabel(labelStringEqFalseBr);
-						mv.visitInsn(ICONST_0);
-						mv.visitLabel(labelPostStringEq);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", descriptor, false);
 					}
 					case NEQ -> {
-						expressionBinary.e0.visit(this, arg);
 						expressionBinary.e1.visit(this, arg);
-						Label labelStringEqFalseBr = new Label();
-						mv.visitJumpInsn(IF_ACMPNE, labelStringEqFalseBr);
+						expressionBinary.e0.visit(this, arg);
+						String descriptor = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", descriptor, false);
+						Label labelFalse = new Label();
+						mv.visitJumpInsn(IFEQ, labelFalse);
 						mv.visitInsn(ICONST_0);
-						Label labelPostStringEq = new Label();
-						mv.visitJumpInsn(GOTO, labelPostStringEq);
-						mv.visitLabel(labelStringEqFalseBr);
+						Label labelTrue = new Label();
+						mv.visitJumpInsn(GOTO, labelTrue);
+						mv.visitLabel(labelFalse);
 						mv.visitInsn(ICONST_1);
-						mv.visitLabel(labelPostStringEq);
+						mv.visitLabel(labelTrue);
 					}
 					case LT -> {
 						expressionBinary.e1.visit(this, arg);

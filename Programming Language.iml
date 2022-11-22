@@ -34,5 +34,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jar_files" level="project" />
+    <orderEntry type="library" name="hamcrest.all" level="project" />
   </component>
 </module>
