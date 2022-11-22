@@ -329,8 +329,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitInsn(IAND);
 					}
 					case GT -> {
-						expressionBinary.e1.visit(this, arg);
 						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
 						String descriptor = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", descriptor, false);
 
@@ -354,8 +354,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", descriptor, false);
 					}
 					case GE -> {
-						expressionBinary.e1.visit(this, arg);
 						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
 						String descriptor = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", descriptor, false);
 

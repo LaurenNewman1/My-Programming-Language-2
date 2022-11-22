@@ -485,6 +485,51 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 
 	}
+
+	@DisplayName("test6")
+	@Test
+	public void test6(TestInfo testInfo) throws Exception {
+		String input = """
+		BEGIN
+			IF ("Is this "+"equal?") = "Is this equal?"
+			THEN
+				BEGIN
+					IF ("STRiNG CoMPaRe" >= "strIng cOmpArE")
+					THEN 
+						BEGIN
+							! "THIS is";
+							! FALSE
+						END;
+					!"This is Equal!"
+				END;
+			IF (("123456" >= "456") + ("456" > "56") + ("123" < "12345"))
+			THEN 
+				BEGIN
+					IF (("123456" >= "456") + ("456" > "56") * ("123" < "12345"))
+					THEN
+						BEGIN 
+							IF ((("123456" >= "456") + ("456" > "56")) * ("123" < "12345"))
+							THEN 
+								! "IF 3 PASSED!";
+							! "IF 2 PASSED!"
+						END;
+					! "IF 1 PASSED!"
+				END
+		END
+	.
+		""";
+
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
+	}
 }
 
 
