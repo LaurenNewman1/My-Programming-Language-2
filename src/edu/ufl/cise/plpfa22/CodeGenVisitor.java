@@ -41,9 +41,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		for (ConstDec constDec : block.constDecs) {
 			constDec.visit(this, methodVisitor);
 		}
-		for (VarDec varDec : block.varDecs) {
-			varDec.visit(this, methodVisitor);
-		}
+//		for (VarDec varDec : block.varDecs) {
+//			varDec.visit(this, methodVisitor);
+//		}
 		for (ProcDec procDec: block.procedureDecs) {
 			procDec.visit(this, className);
 		}
@@ -502,12 +502,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		int currNest = ident.getNest();
 		int targetNest = ident.getDec().getNest();
 		mv.visitVarInsn(ALOAD, 0);
-		for (int i = currNest; i > targetNest; i--)
-			mv.visitFieldInsn(GETFIELD, className, "this$0", classDesc);
+		mv.visitInsn(SWAP);
+		//mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, "this$" + targetNest, classDesc);
 		switch (ident.getDec().getType()) {
-			case NUMBER -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, ident.getFirstToken().getStringValue(), "I");
-			case BOOLEAN -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, ident.getFirstToken().getStringValue(), "Z");
-			case STRING -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, ident.getFirstToken().getStringValue(), "Ljava/lang/String;");
+			case NUMBER -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "I");
+			case BOOLEAN -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "Z");
+			case STRING -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "Ljava/lang/String;");
 		}
 		return null;
 	}
