@@ -530,6 +530,42 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 
 	}
+
+	@DisplayName("test8")
+	@Test
+	public void test8(TestInfo testInfo) throws Exception {
+		String input = """
+		BEGIN 
+			BEGIN
+				! "SPACESPACES" >= "PACES";
+				! "SPACESPACES" > "SPACE";
+				! "SPACESPACES" <= "SPACE";
+				! "SPACESPACES" < "PACE";
+				! "\\n-+*- END -+*-\\n"
+			END;
+			BEGIN
+				BEGIN
+					! "fALSE" >= "SE";
+					! "1234sTRIGN" # "1234Strign";
+					! "Checks for spaces" > "spaces";
+					! "doesntcheckforspaces" > "space";
+					! "\\n-+*- END -+*-\\n"
+				END;
+				! (FALSE*TRUE+FALSE*FALSE+TRUE)						END					
+		END
+		.
+		""";
+
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
+		show(CodeGenUtils.bytecodeToString(bytecode));
+
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		loadClassAndRunMethod(bytecode, className, "main", args);
+
+	}
 }
 
 
