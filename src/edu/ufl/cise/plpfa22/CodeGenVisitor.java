@@ -7,6 +7,7 @@ import edu.ufl.cise.plpfa22.ast.Types.Type;
 
 import java.util.ArrayList;
 import java.util.List;
+import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 
 
 public class CodeGenVisitor implements ASTVisitor, Opcodes {
@@ -14,8 +15,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	final String packageName;
 	final String className;
 	final String sourceFileName;
-	final String fullyQualifiedClassName; 
-	final String classDesc;
+	String fullyQualifiedClassName;
+	String classDesc;
 	
 	ClassWriter classWriter;
 
@@ -44,21 +45,29 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 //		for (VarDec varDec : block.varDecs) {
 //			varDec.visit(this, methodVisitor);
 //		}
+		List<GenClass> classes = new ArrayList<>();
 		for (ProcDec procDec: block.procedureDecs) {
-			procDec.visit(this, className);
+			cw.visitNestMember(fullyQualifiedClassName + "$" + getVarName(procDec));
+			cw.visitInnerClass(fullyQualifiedClassName + "$" + getVarName(procDec),
+					fullyQualifiedClassName, getVarName(procDec), 0);
+			classes.add((GenClass)procDec.visit(this, fullyQualifiedClassName));
 		}
 		//add instructions from statement to method
 		block.statement.visit(this, methodVisitor);
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0,0);
 		methodVisitor.visitEnd();
-		return null;
-
+		return classes;
 	}
 
-	private void init(ClassWriter cw) {
-		MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+	private void init(ClassWriter cw, String desc, String parentDesc, String child) {
+		MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "<init>", desc, null, null);
 		methodVisitor.visitCode();
+		if (parentDesc != null) {
+			methodVisitor.visitVarInsn(ALOAD, 0);
+			methodVisitor.visitVarInsn(ALOAD, 1);
+			methodVisitor.visitFieldInsn(PUTFIELD, child, "this$0", parentDesc);
+		}
 		Label label0 = new Label();
 		methodVisitor.visitLabel(label0);
 		methodVisitor.visitLineNumber(9, label0);
@@ -116,15 +125,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// restore ClassWriter.COMPUTE_FRAMES
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] {"java/lang/Runnable" });
 		classWriter.visitSource(null, null);
-		init(classWriter);
+		init(classWriter, "()V", null, null);
 		initMain(classWriter);
 		//visit the block, passing it the methodVisitor
-		program.block.visit(this, classWriter);
+		List<GenClass> classes = new ArrayList<>((List<GenClass>)program.block.visit(this, classWriter));
 		//finish up the class
         classWriter.visitEnd();
         //return the bytes making up the classfile
-		List<CodeGenUtils.GenClass> classes = new ArrayList<>();
-		classes.add(new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		classes.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
 		return classes;
 	}
 
@@ -145,7 +153,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor)arg;
+		String innerClass = fullyQualifiedClassName + "$" + getVarName(statementCall.ident.getDec());
+		mv.visitTypeInsn(NEW, innerClass);
+		mv.visitInsn(DUP);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitMethodInsn(INVOKESPECIAL, innerClass, "<init>", "(" + classDesc + ")V", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, innerClass, "run", "()V", false);
+		return null;
 	}
 
 	@Override
@@ -446,11 +461,13 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		int currNest = expressionIdent.getNest();
 		int targetNest = expressionIdent.getDec().getNest();
 		mv.visitVarInsn(ALOAD, 0);
-		//mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, "this$" + targetNest, classDesc);
+		if (currNest != 0) {
+			mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, "this$" + targetNest, getOuterDesc(fullyQualifiedClassName, 1));
+		}
 		switch (expressionIdent.getType()) {
-			case NUMBER -> mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, getVarName(expressionIdent.getDec()), "I");
-			case BOOLEAN -> mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, getVarName(expressionIdent.getDec()), "Z");
-			case STRING -> mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, getVarName(expressionIdent.getDec()), "Ljava/lang/String;");
+			case NUMBER -> mv.visitFieldInsn(GETFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(expressionIdent.getDec()), "I");
+			case BOOLEAN -> mv.visitFieldInsn(GETFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(expressionIdent.getDec()), "Z");
+			case STRING -> mv.visitFieldInsn(GETFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(expressionIdent.getDec()), "Ljava/lang/String;");
 		}
 		return null;
 	}
@@ -478,7 +495,26 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		String outerClass = (String)arg;
+		String innerClass = outerClass + "$" + getVarName(procDec);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		cw.visit(V18, ACC_PUBLIC | ACC_SUPER, innerClass, null, "java/lang/Object", new String[] {"java/lang/Runnable" });
+		cw.visitSource(null, null);
+		cw.visitNestHost(outerClass);
+		cw.visitInnerClass(innerClass, outerClass, getVarName(procDec), 0);
+		init(cw, "(" + classDesc + ")V", classDesc, innerClass);
+		initMain(cw);
+		FieldVisitor fv = cw.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$0",
+				classDesc, null, null);
+		fv.visitEnd();
+		String[] ogs = {fullyQualifiedClassName, classDesc};
+		fullyQualifiedClassName = innerClass;
+		classDesc = "L" + innerClass + ";";
+		procDec.block.visit(this, cw);
+		fullyQualifiedClassName = ogs[0];
+		classDesc = ogs[1];
+		cw.visitEnd();
+		return new GenClass(innerClass, cw.toByteArray());
 	}
 
 	@Override
@@ -530,6 +566,24 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			}
 		}
 		return "Ljava/lang/String;";
+	}
+
+	private String getOuterClass(String inner, int nest) {
+		String result = inner;
+		for (int i = 0; i < nest; i++) {
+			int index = inner.lastIndexOf('$');
+			result = inner.substring(0, index);
+		}
+		return result;
+	}
+
+	private String getOuterDesc(String inner, int nest) {
+		String result = inner;
+		for (int i = 0; i < nest; i++) {
+			int index = inner.lastIndexOf('$');
+			result = inner.substring(0, index);
+		}
+		return "L" + result + ";";
 	}
 
 }

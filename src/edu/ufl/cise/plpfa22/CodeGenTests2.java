@@ -662,7 +662,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				22
+				HELLO
+				false
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
