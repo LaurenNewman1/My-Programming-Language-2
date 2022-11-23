@@ -4,6 +4,8 @@
 
 package edu.ufl.cise.plpfa22;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +19,14 @@ import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.PrettyPrintVisitor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class CodeGenTests2 {
+
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+    private final PrintStream originalErr = System.err;
 
 
     /**
@@ -107,7 +116,15 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				3
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
 
     }
 
@@ -123,7 +140,15 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				hello world
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("booleanOut")
@@ -138,7 +163,15 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("statementBlock")
@@ -157,7 +190,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				3
+				false
+				hey, it works!
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("intOps")
@@ -178,7 +221,19 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				4
+				4
+				4
+				4
+				4
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("intEqOps")
@@ -199,8 +254,18 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
-
+        String expected = """
+				false
+				true
+				true
+				false
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("boolEqOps")
@@ -225,7 +290,22 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				true
+				false
+				true
+				false
+				false
+				true
+				false
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
 
     }
 
@@ -257,7 +337,26 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				true
+				true
+				false
+				false
+				false
+				true
+				false
+				true
+				false
+				false
+				true
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("boolRelOps")
@@ -290,7 +389,30 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				true
+				true
+				false
+				false
+				false
+				true
+				false
+				true
+				false
+				false
+				true
+				true
+				false
+				true
+				false
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
@@ -312,8 +434,18 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
-
+        String expected = """
+				false
+				true
+				true
+				false
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
@@ -347,7 +479,95 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+                true
+                true
+                false
+                false
+                false
+                true
+                false
+                true
+                false
+                false
+                false
+                false
+                false
+                true
+                false
+                true
+                """;
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
+    }
+
+    @DisplayName("stringOps")
+    @Test
+    public void stringOps(TestInfo testInfo)throws Exception{
+        String input = """
+			BEGIN 
+			! "cd"+("ab"+""+"qw");
+			! "cvd"+"avb"
+			END
+			.
+			""";
+        String shortClassName = "prog";
+        String JVMpackageName = "edu/ufl/cise/plpfa22";
+        List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+        Object[] args = new Object[1];
+        String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+        loadClassesAndRunMain(classes, className);
+        String expected = """
+				cdabqw
+				cvdavb
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
+    }
+
+    @DisplayName("checkIf")
+    @Test
+    public void checkIf(TestInfo testInfo)throws Exception{
+        String input = """
+			BEGIN 
+			IF 4 < 5 THEN
+				BEGIN
+					! "ABC";
+					IF FALSE THEN
+						! "QQQ"
+					
+				END
+			;
+			IF TRUE THEN
+				! "PPP"
+			;
+			! "qwe"
+			END
+			.
+			""";
+        String shortClassName = "prog";
+        String JVMpackageName = "edu/ufl/cise/plpfa22";
+        List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+        Object[] args = new Object[1];
+        String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+        loadClassesAndRunMain(classes, className);
+        String expected = """
+				ABC
+				PPP
+				qwe
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
@@ -367,7 +587,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				33
+				HELLO
+				false
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("template")
