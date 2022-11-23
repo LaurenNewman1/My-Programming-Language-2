@@ -611,7 +611,15 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				.
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("const1")
@@ -696,7 +704,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				42
+				hello
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("var2")
@@ -721,7 +739,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				42
+				hello
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("var3")
@@ -879,7 +907,21 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				6
+				5
+				4
+				3
+				2
+				1
+				0
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 

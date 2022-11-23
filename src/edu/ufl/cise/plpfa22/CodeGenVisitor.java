@@ -538,12 +538,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		int currNest = ident.getNest();
 		int targetNest = ident.getDec().getNest();
 		mv.visitVarInsn(ALOAD, 0);
+		if (currNest != 0) {
+			mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, "this$" + targetNest, getOuterDesc(fullyQualifiedClassName, 1));
+		}
 		mv.visitInsn(SWAP);
-		//mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, "this$" + targetNest, classDesc);
 		switch (ident.getDec().getType()) {
-			case NUMBER -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "I");
-			case BOOLEAN -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "Z");
-			case STRING -> mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, getVarName(ident.getDec()), "Ljava/lang/String;");
+			case NUMBER -> mv.visitFieldInsn(PUTFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(ident.getDec()), "I");
+			case BOOLEAN -> mv.visitFieldInsn(PUTFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(ident.getDec()), "Z");
+			case STRING -> mv.visitFieldInsn(PUTFIELD, getOuterClass(fullyQualifiedClassName, currNest - targetNest), getVarName(ident.getDec()), "Ljava/lang/String;");
 		}
 		return null;
 	}
