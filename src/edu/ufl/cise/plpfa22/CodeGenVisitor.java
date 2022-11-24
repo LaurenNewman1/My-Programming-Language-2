@@ -156,12 +156,16 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
 		MethodVisitor mv = (MethodVisitor)arg;
-		String innerClass = fullyQualifiedClassName + "$" + getVarName(statementCall.ident.getDec());
-		mv.visitTypeInsn(NEW, innerClass);
+		String procedure = ((ProcDec)statementCall.ident.getDec()).jvmName;
+		mv.visitTypeInsn(NEW, procedure);
 		mv.visitInsn(DUP);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, innerClass, "<init>", "(" + classDesc + ")V", false);
-		mv.visitMethodInsn(INVOKEVIRTUAL, innerClass, "run", "()V", false);
+		int nestDiff = statementCall.ident.getNest() - statementCall.ident.getDec().getNest();
+		loopNest(mv, nestDiff);
+		mv.visitMethodInsn(INVOKESPECIAL, procedure, "<init>", "(" + getOuterDesc(procedure, 1) + ")V", false);
+		mv.visitVarInsn(ASTORE, 1);
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitMethodInsn(INVOKEVIRTUAL, procedure, "run", "()V", false);
 		return null;
 	}
 

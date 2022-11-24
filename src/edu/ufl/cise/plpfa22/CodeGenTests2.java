@@ -616,7 +616,6 @@ public class CodeGenTests2 {
         System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
         String expected = """
-				.
 				""";
         assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
         System.setOut(originalOut);
@@ -790,6 +789,49 @@ public class CodeGenTests2 {
         System.setErr(originalErr);
     }
 
+    @DisplayName("proc1andahalf")
+    @Test
+    public void proc1andahalf(TestInfo testInfo) throws Exception{
+        String input = """
+				VAR a,b,c;
+					PROCEDURE p;
+						BEGIN
+						a := 42;
+						b := "hello";
+						c := TRUE;
+						!a;
+						!b;
+						!c;
+						CALL q
+						END;	
+					PROCEDURE q;
+						BEGIN
+						   ! "in q";
+						END;
+				BEGIN  //main
+				   CALL p ;
+				END
+				.  
+				""";
+        String shortClassName = "prog";
+        String JVMpackageName = "edu/ufl/cise/plpfa22";
+        List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+        Object[] args = new Object[1];
+        String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+        loadClassesAndRunMain(classes, className);
+        String expected = """
+				42
+				hello
+				true
+				in q
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
+    }
+
 
     @DisplayName("proc2")
     @Test
@@ -813,7 +855,7 @@ public class CodeGenTests2 {
 						PROCEDURE r;
 						BEGIN
 						   a := 0;
-						   ! " in r, calling p";
+						   ! "in r, calling p";
 						   CALL p
 						END;
 						//end of r
@@ -835,7 +877,22 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				in main calling p, a=1
+				in p
+				calling q
+				in q, calling q1
+				in q1 calling r
+				in r, calling p
+				in p
+				terminating back in main
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
@@ -940,7 +997,7 @@ public class CodeGenTests2 {
     public void asmifier() throws Exception {
         ASMifier.main(new String[]{prog.class.getName()});
         ASMifier.main(new String[]{prog.p.class.getName()});
-        ASMifier.main(new String[]{prog.p.q.class.getName()});
+        ASMifier.main(new String[]{prog.q.class.getName()});
     }
 
 
