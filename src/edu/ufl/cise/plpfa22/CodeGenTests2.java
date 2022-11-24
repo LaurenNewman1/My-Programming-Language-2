@@ -972,7 +972,28 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				in p, a=
+				6
+				in q, a=
+				5
+				in p, a=
+				4
+				in q, a=
+				3
+				in p, a=
+				2
+				in q, a=
+				1
+				in p, a=
+				0
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("rec1")
@@ -999,7 +1020,28 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				in p, a=
+				6
+				in p, a=
+				5
+				in p, a=
+				4
+				in p, a=
+				3
+				in p, a=
+				2
+				in p, a=
+				1
+				in p, a=
+				0
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
     @DisplayName("while0")
