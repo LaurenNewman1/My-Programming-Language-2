@@ -832,6 +832,51 @@ public class CodeGenTests2 {
         System.setErr(originalErr);
     }
 
+    @DisplayName("proc1and3quarters")
+    @Test
+    public void proc1and3quarters(TestInfo testInfo) throws Exception{
+        String input = """
+				VAR a,b,c;
+					PROCEDURE p;
+						BEGIN
+                            a := 42;
+                            b := "hello";
+                            !a;
+                            !b;
+                            CALL q
+						END;
+					PROCEDURE q;
+						BEGIN
+						   ! "in q";
+						END;
+				BEGIN  //main
+				   a := 1;
+				   ! "in main calling p, a=1";
+				   CALL p ;
+				   ! "terminating back in main"
+				END
+				.  
+				""";
+        String shortClassName = "prog";
+        String JVMpackageName = "edu/ufl/cise/plpfa22";
+        List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+        Object[] args = new Object[1];
+        String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+        loadClassesAndRunMain(classes, className);
+        String expected = """
+				in main calling p, a=1
+				42
+				hello
+				in q
+				terminating back in main
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
+    }
+
 
     @DisplayName("proc2")
     @Test

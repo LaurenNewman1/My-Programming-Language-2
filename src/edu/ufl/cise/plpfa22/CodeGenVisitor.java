@@ -106,8 +106,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	private void initFields(ClassWriter cw, List<Declaration> decs) {
 		for (Declaration dec : decs) {
-			FieldVisitor fv = cw.visitField(ACC_PUBLIC, getVarName(dec), getDesc(dec.getType()), null, null);
-			fv.visitEnd();
+			if (dec.getType() != null) {
+				FieldVisitor fv = cw.visitField(ACC_PUBLIC, getVarName(dec), getDesc(dec.getType()), null, null);
+				fv.visitEnd();
+			}
 		}
 	}
 
