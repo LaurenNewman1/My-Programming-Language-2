@@ -11,12 +11,17 @@ public class ProcDec extends Declaration {
 
 	public final IToken ident;
 	public final Block block;
+	public String jvmName;
 	
 
 	public ProcDec(IToken firstToken, IToken name, Block body) {
 		super(firstToken);
 		this.ident = name;
 		this.block = body;
+	}
+
+	public void setJvmName(String name) {
+		this.jvmName = name;
 	}
 
 

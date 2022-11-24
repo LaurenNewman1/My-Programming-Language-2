@@ -18,6 +18,7 @@ import edu.ufl.cise.plpfa22.CodeGenUtils.DynamicClassLoader;
 import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.PrettyPrintVisitor;
+import org.objectweb.asm.util.ASMifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -776,7 +777,17 @@ public class CodeGenTests2 {
         List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
         Object[] args = new Object[1];
         String className = "edu.ufl.cise.plpfa22.prog";
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
         loadClassesAndRunMain(classes, className);
+        String expected = """
+				42
+				hello
+				true
+				""";
+        assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
+        System.setOut(originalOut);
+        System.setErr(originalErr);
     }
 
 
@@ -922,6 +933,14 @@ public class CodeGenTests2 {
         assertEquals(expected.replace("\n", "\r\n"), outContent.toString());
         System.setOut(originalOut);
         System.setErr(originalErr);
+    }
+
+    @DisplayName("Asmifier")
+    @Test
+    public void asmifier() throws Exception {
+        ASMifier.main(new String[]{prog.class.getName()});
+        ASMifier.main(new String[]{prog.p.class.getName()});
+        ASMifier.main(new String[]{prog.p.q.class.getName()});
     }
 
 
