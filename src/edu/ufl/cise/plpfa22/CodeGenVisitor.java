@@ -163,7 +163,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		mv.visitInsn(DUP);
 		mv.visitVarInsn(ALOAD, 0);
 		int nestDiff = statementCall.ident.getNest() - statementCall.ident.getDec().getNest();
-		loopNest(mv, nestDiff);
+		loopNest(mv, nestDiff, statementCall.ident.getNest());
 		mv.visitMethodInsn(INVOKESPECIAL, procedure, "<init>", "(" + getOuterDesc(procedure, 1) + ")V", false);
 		mv.visitVarInsn(ASTORE, 1);
 		mv.visitVarInsn(ALOAD, 1);
@@ -466,11 +466,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
 		MethodVisitor mv = (MethodVisitor)arg;
-		int currNest = expressionIdent.getNest();
-		int targetNest = expressionIdent.getDec().getNest();
-		int nestDiff = currNest - targetNest;
+		int nestDiff = expressionIdent.getNest() - expressionIdent.getDec().getNest();
 		mv.visitVarInsn(ALOAD, 0);
-		loopNest(mv, nestDiff);
+		loopNest(mv, nestDiff, expressionIdent.getNest());
 		switch (expressionIdent.getType()) {
 			case NUMBER -> mv.visitFieldInsn(GETFIELD, getOuterClass(fullyQualifiedClassName, nestDiff), getVarName(expressionIdent.getDec()), "I");
 			case BOOLEAN -> mv.visitFieldInsn(GETFIELD, getOuterClass(fullyQualifiedClassName, nestDiff), getVarName(expressionIdent.getDec()), "Z");
@@ -546,11 +544,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitIdent(Ident ident, Object arg) throws PLPException {
 		MethodVisitor mv = (MethodVisitor)arg;
-		int currNest = ident.getNest();
-		int targetNest = ident.getDec().getNest();
-		int nestDiff = currNest - targetNest;
+		int nestDiff = ident.getNest() - ident.getDec().getNest();
 		mv.visitVarInsn(ALOAD, 0);
-		loopNest(mv, nestDiff);
+		loopNest(mv, nestDiff, ident.getNest());
 		mv.visitInsn(SWAP);
 		switch (ident.getDec().getType()) {
 			case NUMBER -> mv.visitFieldInsn(PUTFIELD, getOuterClass(fullyQualifiedClassName, nestDiff), getVarName(ident.getDec()), "I");
@@ -624,11 +620,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 	}
 
-	private void loopNest(MethodVisitor mv, int nestDiff) {
+	private void loopNest(MethodVisitor mv, int nestDiff, int nest) {
 		String fullName = fullyQualifiedClassName;
 		for (int i = nestDiff; i > 0; i--) {
-			mv.visitFieldInsn(GETFIELD, fullName, "this$" + (i - 1), getOuterDesc(fullName, 1));
+			mv.visitFieldInsn(GETFIELD, fullName, "this$" + (nest - 1), getOuterDesc(fullName, 1));
 			fullName = getOuterClass(fullName, 1);
+			nest--;
 		}
 	}
 }

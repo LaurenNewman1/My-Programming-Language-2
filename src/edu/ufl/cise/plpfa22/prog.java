@@ -11,24 +11,22 @@ public class prog implements Runnable {
 
     class p implements Runnable {
 
-        @Override
-        public void run() {
-            a = 42;
-            b = "hello";
-            c = true;
-            System.out.println(a);
-            System.out.println(b);
-            System.out.println(c);
-            q qe = new q();
-            qe.run();
+        class q implements Runnable {
+
+            @Override
+            public void run() {
+                a = 42;
+                b = "hello";
+                c = true;
+                System.out.println(a);
+                System.out.println(b);
+                System.out.println(c);
+            }
         }
-    }
-
-    class q implements Runnable {
 
         @Override
         public void run() {
-            System.out.println("in q");
+            new q().run();
         }
     }
 
