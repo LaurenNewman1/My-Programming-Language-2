@@ -68,7 +68,7 @@ public class SymbolTable {
         // procedures are fine from anywhere
         for (int i = matches.size() - 1; i >= 0; i--) {
             if (matches.get(i).getDec() instanceof ProcDec)
-                return matches.get(matches.size() - 1).getDec();
+                return matches.get(i).getDec();
         }
         return null;
     }

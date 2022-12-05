@@ -7,9 +7,11 @@ package edu.ufl.cise.plpfa22;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -20,7 +22,7 @@ import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.PrettyPrintVisitor;
 import org.objectweb.asm.util.ASMifier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CodeGenTests2 {
 
@@ -1292,6 +1294,50 @@ public class CodeGenTests2 {
         System.setOut(originalOut);
         System.setErr(originalErr);
     }
+
+    @DisplayName("test12")
+    @Test
+    public void test12(TestInfo testInfo) throws Exception{
+        String input = """
+			PROCEDURE p;
+				PROCEDURE q;;;
+
+			PROCEDURE q;
+				PROCEDURE p;;;
+
+			PROCEDURE r;
+				PROCEDURE p;
+					PROCEDURE q;
+						VAR r;
+						BEGIN
+							r:=3;
+							IF r=3
+							THEN
+								WHILE r>=0
+								DO
+									BEGIN
+										r:=r+r;
+										!r
+									END
+						END
+					;
+					CALL q
+				;
+				CALL p
+			;
+			CALL r
+			.
+			""";
+        String shortClassName = "prog";
+        String JVMpackageName = "edu/ufl/cise/plpfa22";
+        List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+        Object[] args = new Object[1];
+        String className = "edu.ufl.cise.plpfa22.prog";
+        Assertions.assertTimeout(Duration.ofSeconds(3), () -> {
+            loadClassesAndRunMain(classes, className);
+        });
+    }
+
 
 
     @DisplayName("Asmifier")

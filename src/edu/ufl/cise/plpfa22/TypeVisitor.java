@@ -90,7 +90,7 @@ public class TypeVisitor implements ASTVisitor {
     }
 
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-        visitIdent(statementCall.ident, arg);
+        //visitIdent(statementCall.ident, arg);
         if (statementCall.ident.getDec().getType() != null) {
             if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
                 throw new TypeCheckException("Types are not compatible");
